@@ -661,7 +661,7 @@
                 </div>
                 <h1 class="hero-title">Plan with Confidence, Celebrate with Joy</h1>
                 <p class="hero-subtitle">
-                    Transform how you plan weddings, funerals, and naming ceremonies. Connect with verified vendors, manage your budget, and collaborate with family—all in one beautiful platform.
+                    Transform how you plan weddings, funerals, and naming ceremonies. Connect with verified vendors, manage your budget, and collaborate with family, all in one beautiful platform.
                 </p>
                 <div class="hero-buttons">
                     <button class="btn-primary" onclick="window.location.href='view/register.php'">
@@ -693,7 +693,7 @@
                         <div class="phone-screen">
                             <div class="screen-content">
                                 <div class="screen-icon">💰</div>
-                                <div class="screen-title">Budget: GHS 25,000</div>
+                                <div class="screen-title">Budget: Any Amount</div>
                                 <div class="screen-text">Smart recommendations matched to your budget</div>
                                 <div class="screen-cards">
                                     <div class="feature-card">
@@ -757,13 +757,13 @@
             <div class="feature-box">
                 <div class="feature-icon">💳</div>
                 <h3 class="feature-title">Flexible Payments</h3>
-                <p class="feature-desc">Pay via mobile money, installments, or group contributions. Funds held safely in escrow.</p>
+                <p class="feature-desc">Pay via mobile money, or paystack. Funds held safely in escrow.</p>
             </div>
             
             <div class="feature-box">
                 <div class="feature-icon">📊</div>
                 <h3 class="feature-title">Price Comparison</h3>
-                <p class="feature-desc">Compare vendors side-by-side. See reviews, portfolios, and exact prices—all transparent.</p>
+                <p class="feature-desc">Compare vendors side-by-side. See reviews, portfolios, and exact prices, all transparent.</p>
             </div>
             
             <div class="feature-box">
