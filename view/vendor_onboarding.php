@@ -455,16 +455,13 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label">Payment Methods Accepted</label>
-                        <input type="text" name="payment_methods" class="form-input" placeholder="e.g., Cash, Mobile Money, Bank Transfer">
-                    </div>
+                    
                 </div>
                 
                 <!-- Submit Buttons -->
                 <div class="button-group">
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='../../actions/logout.php'">Save & Complete Later</button>
-                    <button type="submit" class="btn btn-primary">Complete Profile</button>
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='vendor_prof.php'">Save & Complete Later</button>
+                    <button type="button" class="btn btn-primary" onclick="window.location.href='vendor_dash.php'">Complete Profile</button>
                 </div>
             </form>
         </div>

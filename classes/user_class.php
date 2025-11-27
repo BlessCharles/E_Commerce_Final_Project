@@ -156,14 +156,37 @@ class User extends db_connection {
         if (!$conn) {
             return false;
         }
-    
-        $sql = "SELECT * FROM vendors WHERE user_id = ? AND business_name IS NOT NULL AND business_description IS NOT NULL LIMIT 1";
+
+        // Get vendor record
+        $sql = "SELECT * FROM vendors WHERE user_id = ? LIMIT 1";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-    
-        return $result->num_rows > 0;
+        $vendor = $result->fetch_assoc();
+
+        // If vendor record does NOT exist → new vendor
+        if (!$vendor) {
+            return false;
+        }
+
+        // Required fields that MUST be filled before going to dashboard
+        $required_fields = [
+            'business_name',
+            'business_description',
+            'category',
+            'location',
+            'address',
+            'starting_price'
+        ];
+
+        foreach ($required_fields as $field) {
+            if (empty($vendor[$field])) {
+                return false; // Incomplete onboarding
+            }
+        }
+
+        return true; // Fully completed onboarding
     }
     
 
@@ -214,5 +237,8 @@ class User extends db_connection {
         $stmt->bind_param("si", $hashed_password, $user_id);
         return $stmt->execute();
     }
+
+
+
 }
 ?>

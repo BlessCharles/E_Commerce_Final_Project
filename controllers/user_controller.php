@@ -214,16 +214,15 @@ class UserController {
     private function get_redirect_url($user) {
         if ($user['user_type'] === 'vendor') {
             $userModel = new User();
-            // Check if vendor profile is complete
             if ($userModel->vendor_profile_complete($user['user_id'])) {
-                return "../view/vendor_prof.php";  // Changed this
+                return "../view/vendor_prof.php";
             } else {
-                return "../view/vendor_onboarding.php";  // You'll need to create this
+                return "../view/vendor_onboarding.php";
             }
         } else {
-            // Customer
-            return "../view/user_landing.php";  // Changed this
+            return "../view/user_landing.php";
         }
     }
+
 
 }
