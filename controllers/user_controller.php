@@ -215,7 +215,7 @@ class UserController {
         if ($user['user_type'] === 'vendor') {
             $userModel = new User();
             if ($userModel->vendor_profile_complete($user['user_id'])) {
-                return "../view/vendor_prof.php";
+                return "../view/vendor_dash.php";
             } else {
                 return "../view/vendor_onboarding.php";
             }

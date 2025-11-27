@@ -359,7 +359,7 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                 </div>
             </div>
             
-            <form action="../../actions/save_vendor_profile.php" method="POST" enctype="multipart/form-data">
+            <form action="../actions/save_vendor_profile.php" method="POST" enctype="multipart/form-data">
                 <!-- Business Information -->
                 <div class="form-section">
                     <h3 class="section-title">Business Information</h3>
@@ -372,6 +372,11 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                     <div class="form-group">
                         <label class="form-label">Business Description *</label>
                         <textarea name="business_description" class="form-textarea" placeholder="Tell customers about your business, experience, and what makes you special..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Business Image</label>
+                        <input type="file" name="vendor_image" class="form-input" accept="image/*">
                     </div>
                     
                     <div class="form-row">
@@ -453,6 +458,9 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                             <label class="form-label">Price Range (GH₵)</label>
                             <input type="text" name="price_range" class="form-input" placeholder="e.g., 500 - 5000">
                         </div>
+
+                        
+
                     </div>
                     
                     
@@ -460,8 +468,10 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                 
                 <!-- Submit Buttons -->
                 <div class="button-group">
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='vendor_prof.php'">Save & Complete Later</button>
-                    <button type="button" class="btn btn-primary" onclick="window.location.href='vendor_dash.php'">Complete Profile</button>
+                    <button type="submit" class="btn btn-secondary" name="save_later">Save & Complete Later</button>
+                    <button type="submit" class="btn btn-primary" name="complete_profile">Complete Profile</button>
+
+                    
                 </div>
             </form>
         </div>
