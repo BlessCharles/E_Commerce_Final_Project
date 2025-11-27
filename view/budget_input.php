@@ -1,3 +1,17 @@
+<?php
+// views/budget_input.php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'] ?? 'User';
+$user_initials = strtoupper(substr($user_name, 0, 2));
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -370,7 +384,7 @@
         }
     </style>
 </head>
-<body>
+<body data-user-id="<?php echo $user_id; ?>">
     <!-- Navigation -->
     <nav>
         <div class="logo">
@@ -378,7 +392,7 @@
             <div class="logo-text">PlanSmart Ghana</div>
         </div>
         <div class="user-menu">
-            <div class="user-avatar">KM</div>
+            <div class="user-avatar"><?php echo $user_initials; ?></div>
         </div>
     </nav>
     
@@ -406,14 +420,14 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="content-header">
-            <div class="event-badge">
-                🕊️ Planning a Funeral
-            </div>
             <h1>Let's Plan Your Event</h1>
             <p>Tell us about your budget and requirements</p>
         </div>
         
+        
+
         <div class="budget-card">
+        <form action="../controllers/budget_controller.php?action=createEvent" method="POST">
             <!-- Budget Input -->
             <div class="budget-input-group">
                 <label class="input-label">What's your total budget?</label>
@@ -421,9 +435,9 @@
                     <span class="currency-symbol">GHS</span>
                     <input 
                         type="text" 
+                        name="budget"
                         class="budget-input" 
-                        placeholder="25,000" 
-                        value="25,000"
+                        placeholder="0"
                     >
                 </div>
                 <p class="budget-hint">💡 Don't worry, we'll help you optimize your spending</p>
@@ -434,51 +448,53 @@
                 <h2 class="section-title">What services do you need?</h2>
                 <div class="services-grid">
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="catering" checked>
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="catering">
                         <label for="catering" class="service-label">Catering</label>
                         <span class="service-icon">🍽️</span>
                     </div>
                     
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="venue" checked>
+                        
+
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="venue">
                         <label for="venue" class="service-label">Venue</label>
                         <span class="service-icon">🏛️</span>
                     </div>
                     
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="decoration" checked>
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="decoration">
                         <label for="decoration" class="service-label">Decoration</label>
                         <span class="service-icon">🎨</span>
                     </div>
                     
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="photography" checked>
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="photography">
                         <label for="photography" class="service-label">Photography</label>
                         <span class="service-icon">📸</span>
                     </div>
                     
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="tent" checked>
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]"  value="tent">
                         <label for="tent" class="service-label">Tent & Chairs</label>
                         <span class="service-icon">⛺</span>
                     </div>
                     
                     <div class="service-item checked">
-                        <input type="checkbox" class="service-checkbox" id="sound" checked>
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="sound">
                         <label for="sound" class="service-label">Sound System</label>
                         <span class="service-icon">🔊</span>
                     </div>
                     
                     <div class="service-item">
-                        <input type="checkbox" class="service-checkbox" id="transport">
+                        
+                        <input type="checkbox" class="service-checkbox" name="services[]" value="transport">
                         <label for="transport" class="service-label">Transportation</label>
                         <span class="service-icon">🚌</span>
-                    </div>
-                    
-                    <div class="service-item">
-                        <input type="checkbox" class="service-checkbox" id="other">
-                        <label for="other" class="service-label">Other Services</label>
-                        <span class="service-icon">➕</span>
                     </div>
                 </div>
             </div>
@@ -488,44 +504,31 @@
                 <h2 class="section-title">Event Details</h2>
                 <div class="event-details">
                     <div class="detail-group">
+                        
+
                         <label class="detail-label">Expected Guest Count</label>
-                        <input type="number" class="detail-input" placeholder="e.g., 300" value="300">
+                        <input type="number" class="detail-input" name="guest_count" placeholder="e.g., 300">
                     </div>
                     
                     <div class="detail-group">
+                        
+
                         <label class="detail-label">Event Date</label>
-                        <input type="date" class="detail-input" value="2025-01-15">
+                        <input type="date" class="detail-input" name="event_date">
                     </div>
                 </div>
             </div>
-            
+        
             <!-- CTA -->
             <div class="cta-container">
-                <button class="btn-continue">Get Smart Recommendations →</button>
+                
+
+                <button type="submit" class="btn-continue">Get Smart Recommendations →</button>
             </div>
+        </form>
         </div>
     </div>
     
-    <script>
-        // Toggle service items
-        document.querySelectorAll('.service-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                if (e.target.type !== 'checkbox') {
-                    const checkbox = this.querySelector('.service-checkbox');
-                    checkbox.checked = !checkbox.checked;
-                }
-                this.classList.toggle('checked', this.querySelector('.service-checkbox').checked);
-            });
-        });
-        
-        // Format budget input
-        const budgetInput = document.querySelector('.budget-input');
-        budgetInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/,/g, '');
-            if (!isNaN(value) && value !== '') {
-                e.target.value = parseInt(value).toLocaleString();
-            }
-        });
-    </script>
+    <script src="../js/budget_input.js"></script>
 </body>
 </html>
