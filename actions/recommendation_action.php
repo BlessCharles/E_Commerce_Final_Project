@@ -16,6 +16,23 @@ switch($action) {
         echo json_encode($result);
         break;
 
+    case 'saveSelections':
+        // Handle POST request for saving vendor selections
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        if (!$data || !isset($data['event_id']) || !isset($data['vendors'])) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Invalid data provided'
+            ]);
+            break;
+        }
+        
+        $result = $controller->save_vendor_selections($data['event_id'], $data['vendors']);
+        echo json_encode($result);
+        break;
+
     default:
         echo json_encode([
             'status' => 'error',

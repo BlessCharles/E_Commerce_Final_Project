@@ -52,41 +52,108 @@ document.addEventListener('DOMContentLoaded', function() {
     loadRecommendations();
 });
 
+// Attach handler to Continue to Collab button using event delegation
+// This works even if the button is added dynamically
+document.addEventListener('click', async function(e) {
+    // Check if clicked element is the collab button
+    const collabBtn = e.target.closest('a[href*="collab_work.php"]');
+    
+    if (collabBtn) {
+        e.preventDefault(); // Prevent immediate navigation
+        
+        if (Object.keys(selectedVendors).length === 0) {
+            alert('Please select at least one vendor before continuing to collaboration');
+            return;
+        }
+        
+        // Show loading state
+        const originalText = collabBtn.textContent;
+        collabBtn.textContent = 'Saving selections...';
+        collabBtn.style.pointerEvents = 'none';
+        
+        // Save selections to database
+        const saved = await saveVendorSelections();
+        
+        if (saved) {
+            // Navigate to collab page
+            window.location.href = `collab_work.php?event_id=${eventId}`;
+        } else {
+            // Restore button state
+            collabBtn.textContent = originalText;
+            collabBtn.style.pointerEvents = 'auto';
+            alert('Failed to save vendor selections. Please try again.');
+        }
+    }
+});
+
+// Save vendor selections to database
+async function saveVendorSelections() {
+    try {
+        console.log('Saving vendor selections:', selectedVendors);
+        
+        const response = await fetch('../actions/recommendation_action.php?action=saveSelections', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                event_id: eventId,
+                vendors: selectedVendors
+            })
+        });
+        
+        // Check if response is OK
+        if (!response.ok) {
+            console.error('HTTP error:', response.status, response.statusText);
+            return false;
+        }
+        
+        const data = await response.json();
+        console.log('Save selections response:', data);
+        
+        if (data.status === 'success') {
+            console.log(`Successfully saved ${data.saved_count} vendor(s)`);
+            if (data.errors && data.errors.length > 0) {
+                console.warn('Some errors occurred:', data.errors);
+            }
+            return true;
+        } else {
+            console.error('Save failed:', data.message);
+            if (data.errors) {
+                console.error('Errors:', data.errors);
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('Error saving selections:', error);
+        return false;
+    }
+}
+
 // Load recommendations from server
 async function loadRecommendations() {
     try {
         const response = await fetch(`../actions/recommendation_action.php?action=getRecommendations&event_id=${eventId}`);
         const data = await response.json();
 
-        console.log('API Response:', data); // Debug log
+        console.log('API Response:', data);
 
         if (data.status === 'success') {
-            // Hide loading state
             document.getElementById('loadingState').style.display = 'none';
-            
-            // Show content
             document.querySelector('.budget-tracker').style.display = 'block';
             document.querySelector('.content-grid').style.display = 'grid';
             
-            // Render all sections
             renderBudgetTracker(data);
             renderBudgetBreakdown(data);
             renderVendorRecommendations(data);
         } else {
-            // Hide loading
             document.getElementById('loadingState').style.display = 'none';
-            
-            // Show error
             alert(data.message || 'Error loading recommendations');
             window.location.href = 'budget_input.php';
         }
     } catch (error) {
         console.error('Error:', error);
-        
-        // Hide loading
         document.getElementById('loadingState').style.display = 'none';
-        
-        // Show error
         alert('Failed to load recommendations. Please check console for details.');
     }
 }
@@ -117,7 +184,7 @@ function renderBudgetBreakdown(data) {
     for (const [category, info] of Object.entries(data.recommendations)) {
         const icon = categoryIcons[category] || '📦';
         const color = categoryColors[category] || '#94a3b8';
-        const barWidth = (info.percentage / 100) * 200; // Max 200px width
+        const barWidth = (info.percentage / 100) * 200;
 
         html += `
             <div class="breakdown-item">
@@ -135,10 +202,8 @@ function renderBudgetBreakdown(data) {
         `;
     }
 
-    // Note: Continue button is now in the PHP file
     container.innerHTML = html;
 }
-
 
 // Render vendor recommendations
 function renderVendorRecommendations(data) {
@@ -147,7 +212,6 @@ function renderVendorRecommendations(data) {
 
     for (const [category, info] of Object.entries(data.recommendations)) {
         if (!info.vendors || info.vendors.length === 0) {
-            // Show message if no vendors found
             html += `
                 <div class="category-section" data-category="${category}">
                     <div class="category-header">
@@ -174,10 +238,9 @@ function renderVendorRecommendations(data) {
                         <span class="category-icon">${icon}</span>
                         ${displayName}
                     </div>
-                    <!-- Browse All link removed - now in PHP -->
                 </div>
                 <div class="vendor-grid">
-                    ${renderVendorCards(info.vendors, category)}
+                    ${renderVendorCards(info.vendors, category, info.allocated_amount)}
                 </div>
             </div>
         `;
@@ -187,16 +250,12 @@ function renderVendorRecommendations(data) {
 }
 
 // Render vendor cards
-function renderVendorCards(vendors, category) {
+function renderVendorCards(vendors, category, allocatedAmount) {
     return vendors.map(vendor => {
         const isSelected = selectedVendors[category] === vendor.vendor_id;
         const selectBtnClass = isSelected ? 'btn-select btn-selected' : 'btn-select';
         const selectBtnText = isSelected ? '✓ Selected' : 'Select';
         
-        // DEBUG: Log vendor image path
-        console.log(`Vendor: ${vendor.business_name}, Image Path: "${vendor.image}"`);
-        
-        // Get vendor image - use uploaded image or fallback to placeholder
         const vendorImage = getVendorImageHTML(vendor.image, category);
 
         return `
@@ -213,7 +272,8 @@ function renderVendorCards(vendors, category) {
                     <button class="btn-view" onclick="viewVendorDetails(${vendor.vendor_id})">
                         View Details
                     </button>
-                    <button class="${selectBtnClass}" onclick="toggleVendorSelection(${vendor.vendor_id}, '${category}', this)">
+                    <button class="${selectBtnClass}" 
+                            onclick="toggleVendorSelection(${vendor.vendor_id}, '${category}', ${vendor.starting_price}, this)">
                         ${selectBtnText}
                     </button>
                 </div>
@@ -222,43 +282,33 @@ function renderVendorCards(vendors, category) {
     }).join('');
 }
 
-// Get vendor image HTML - returns actual image or fallback
+// Get vendor image HTML
 function getVendorImageHTML(imagePath, category) {
-    // Clean up the path - remove whitespace and extra '../'
     if (imagePath && imagePath.trim() !== '') {
         imagePath = imagePath.trim();
         
-        // Remove leading '../' if it exists (avoid double ../)
         if (imagePath.startsWith('../')) {
             imagePath = imagePath.substring(3);
         }
         
-        // Option 1: Relative path (current)
         const imageUrl = `../${imagePath}`;
-        
-        // Option 2: Absolute path (uncomment if relative doesn't work)
-        // const imageUrl = `/${imagePath}`;
-        
-        console.log(`Final image URL: ${imageUrl}`); // DEBUG
         
         return `
             <div class="vendor-image" style="background: none; padding: 0;">
                 <img src="${imageUrl}" 
                      alt="Vendor business" 
                      style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                     onerror="console.error('Failed to load image: ${imageUrl}'); this.parentElement.innerHTML='${getVendorIcon(category)}'">
+                     onerror="this.parentElement.innerHTML='${getVendorIcon(category)}'">
             </div>
         `;
     } else {
-        // No image - show category icon fallback
-        console.log(`No image for category: ${category}, showing icon`); // DEBUG
         return `<div class="vendor-image">${getVendorIcon(category)}</div>`;
     }
 }
 
-// Toggle vendor selection
-function toggleVendorSelection(vendorId, category, button) {
-    if (selectedVendors[category] === vendorId) {
+// Toggle vendor selection - UPDATED to store vendor details
+function toggleVendorSelection(vendorId, category, price, button) {
+    if (selectedVendors[category]?.vendor_id === vendorId) {
         // Deselect
         delete selectedVendors[category];
         button.classList.remove('btn-selected');
@@ -272,8 +322,11 @@ function toggleVendorSelection(vendorId, category, button) {
             prevBtn.textContent = 'Select';
         }
 
-        // Select new vendor
-        selectedVendors[category] = vendorId;
+        // Select new vendor - store vendor_id and price
+        selectedVendors[category] = {
+            vendor_id: vendorId,
+            price: price
+        };
         button.classList.add('btn-selected');
         button.textContent = '✓ Selected';
     }
@@ -284,20 +337,6 @@ function toggleVendorSelection(vendorId, category, button) {
 // View vendor details
 function viewVendorDetails(vendorId) {
     window.location.href = `vendor_details.php?vendor_id=${vendorId}&event_id=${eventId}`;
-}
-
-// Proceed to review page
-function proceedToReview() {
-    if (Object.keys(selectedVendors).length === 0) {
-        alert('Please select at least one vendor before continuing');
-        return;
-    }
-
-    // Store selections in sessionStorage
-    sessionStorage.setItem('selectedVendors', JSON.stringify(selectedVendors));
-    
-    // Redirect to review page
-    window.location.href = `review_booking.php?event_id=${eventId}`;
 }
 
 // Helper functions

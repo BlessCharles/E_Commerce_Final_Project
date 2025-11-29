@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../classes/vendor_class.php';
 require_once __DIR__ . '/../classes/budget_class.php';
+require_once __DIR__ . '/../classes/booking_class.php';
+require_once __DIR__ . '/../classes/event_class.php';
 
 class RecommendationController {
 
@@ -126,6 +128,108 @@ class RecommendationController {
             'category' => $category,
             'vendors' => $vendors ? $vendors : []
         ];
+    }
+
+    /**
+     * Save vendor selections as bookings
+     * @param int $event_id
+     * @param array $vendors - array with category => {vendor_id, price}
+     * @return array
+     */
+    public function save_vendor_selections($event_id, $vendors) {
+        session_start();
+        
+        if (!isset($_SESSION['user_id'])) {
+            return [
+                'status' => 'error',
+                'message' => 'Please log in to continue'
+            ];
+        }
+        
+        $user_id = $_SESSION['user_id'];
+        
+        // Verify user owns this event
+        $budgetClass = new Budget();
+        $event = $budgetClass->get_event_by_id($event_id);
+        
+        if (!$event || $event['user_id'] != $user_id) {
+            return [
+                'status' => 'error',
+                'message' => 'Event not found or unauthorized access'
+            ];
+        }
+        
+        $bookingClass = new Booking();
+        $saved_count = 0;
+        $errors = [];
+        
+        // Get event date for booking (use event_date if exists, otherwise use current date)
+        $booking_date = !empty($event['event_date']) ? $event['event_date'] : date('Y-m-d');
+        
+        // Loop through selected vendors and create bookings
+        foreach ($vendors as $category => $vendor_data) {
+            $vendor_id = intval($vendor_data['vendor_id']);
+            $amount = floatval($vendor_data['price']);
+            
+            // Validate vendor exists
+            $vendor_check = "SELECT vendor_id FROM vendors WHERE vendor_id = $vendor_id LIMIT 1";
+            if (!$bookingClass->db_fetch_one($vendor_check)) {
+                $errors[] = "Vendor $vendor_id not found";
+                continue;
+            }
+            
+            // Check if booking already exists for this vendor and event
+            $existing_sql = "SELECT booking_id FROM bookings 
+                            WHERE event_id = $event_id AND vendor_id = $vendor_id LIMIT 1";
+            $existing = $bookingClass->db_fetch_one($existing_sql);
+            
+            if ($existing) {
+                // Update existing booking
+                $booking_id = $existing['booking_id'];
+                $update_sql = "UPDATE bookings 
+                              SET amount = $amount, 
+                                  booking_date = '$booking_date',
+                                  status = 'pending',
+                                  updated_at = NOW()
+                              WHERE booking_id = $booking_id";
+                
+                if ($bookingClass->db_write_query($update_sql)) {
+                    $saved_count++;
+                } else {
+                    $errors[] = "Failed to update booking for vendor $vendor_id";
+                }
+            } else {
+                // Create new booking
+                $result = $bookingClass->create_booking(
+                    $event_id, 
+                    $vendor_id, 
+                    $amount, 
+                    $booking_date,
+                    "Selected from recommendations"
+                );
+                
+                if ($result) {
+                    $saved_count++;
+                } else {
+                    $errors[] = "Failed to create booking for vendor $vendor_id";
+                }
+            }
+        }
+        
+        if ($saved_count > 0) {
+            return [
+                'status' => 'success',
+                'message' => "Successfully saved $saved_count vendor selection(s)",
+                'saved_count' => $saved_count,
+                'errors' => $errors
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'message' => 'Failed to save vendor selections',
+                'errors' => $errors
+            ];
+        }
     }
 }
 ?>

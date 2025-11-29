@@ -669,9 +669,14 @@ $event_id = $_GET['event_id'];
             </div>
         </div>
             <!-- TWO BUTTONS UNDER BREAKDOWN -->
+    
         <div class="cta-container">
-            <a href="browse_vendors.php" type="submit" class="btn-continue">Browse Vendors</a>
-            <a href="collab_work.php" type="submit" class="btn-continue">Continue to Collab</a>
+            <a href="browse_vendors.php?event_id=<?php echo $event_id; ?>" class="btn-continue">
+                Browse Vendors
+            </a>
+            <a href="collab_work.php?event_id=<?php echo $event_id; ?>" class="btn-continue">
+                Continue to Collab
+            </a>
         </div>
 
         

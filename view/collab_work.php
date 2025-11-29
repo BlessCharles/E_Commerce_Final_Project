@@ -1,3 +1,24 @@
+<?php
+// views/collab_work.php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if event_id is provided
+if (!isset($_GET['event_id'])) {
+    header('Location: budget_input.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+$event_id = $_GET['event_id']; // ADD THIS LINE
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -464,6 +485,174 @@
             color: #64748b;
             margin-top: 2px;
         }
+
+        /* MODAL OVERLAY */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* MODAL BOX */
+        .modal-content {
+            background: white;
+            padding: 25px;
+            width: 380px;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s ease-out;
+        }
+
+        /* TITLE */
+        .modal-content h2 {
+            margin-bottom: 15px;
+            color: #1e3a8a;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        /* INPUTS */
+        .modal-content input[type="text"],
+        .modal-content input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 15px 0;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .modal-content input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            outline: none;
+        }
+
+        /* BUTTONS */
+        .modal-content button {
+            padding: 12px 18px;
+            margin-right: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .modal-content button[type="submit"] {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .modal-content .closeModal {
+            background: #e2e8f0;
+            color: #1e3a8a;
+        }
+
+        /* DELETE BUTTON */
+        .danger-btn {
+            background: #dc2626;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .cta-container {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            gap: 12px; /* Space between buttons */
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-continue {
+            text-decoration: none;
+            padding: 14px 20px;
+            background: #fbbf24;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3a8a;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+            transition: all 0.3s;
+            width: 100%; /* Full width */
+            text-align: center;
+        }
+
+        .btn-continue:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        /* POP-IN ANIMATION */
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+
+
+        .profile-wrapper {
+            position: relative;
+        }
+
+        .profile-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 220px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 10px;
+            display: none;
+            z-index: 10;
+        }
+
+        .dropdown-header {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 12px;
+            color: #1e3a8a;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f5f9;
+        }
+
+        .dropdown-item.logout {
+            color: red;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -473,15 +662,27 @@
             <div class="logo-icon">🎉</div>
             <div class="logo-text">PlanSmart Ghana</div>
         </div>
-        <div class="user-avatar">KM</div>
+        <div class="profile-wrapper">
+            <div class="user-avatar" id="profileBtn">👤</div>
+
+        
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-header">
+                    <strong><?php echo htmlspecialchars($user_name); ?></strong>
+                        
+                </div>
+                    <a href="#" id="editAccount" class="dropdown-item">Edit Account</a>
+                    <a href="#" id="deleteAccount" class="dropdown-item">Delete Account</a>
+
+                    <a href="#" class="dropdown-item logout" onclick="event.preventDefault(); if (confirm('Are you sure you want to log out?')) {window.location.href='logout.php'; }">Logout</a>
+            </div>
+        </div>
     </nav>
     
     <!-- Event Header -->
     <div class="event-header">
         <div class="event-title-row">
-            <h1 class="event-title">
-                🕊️ Mom's Funeral - Koforidua
-            </h1>
+            
             <button class="btn-invite">
                 👥 Invite Family Member
             </button>
@@ -529,9 +730,18 @@
             </div>
             
             <div class="budget-footer">
-                <span>Total Spent:</span>
+                <span>Total Estimated Cost:</span>
                 <span>GHS 24,800</span>
             </div>
+
+            <div class="cta-container">
+            <a href="browse_vendors.php?event_id=<?php echo $event_id; ?>" class="btn-continue">
+                Browse Vendors
+            </a>
+            <a href="book_confirm.php?event_id=<?php echo $event_id; ?>" class="btn-continue">
+                Book & Review 
+            </a>
+        </div>
         </aside>
         
         <!-- Selected Vendors Section -->
@@ -655,7 +865,7 @@
                 
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 18px; font-weight: 700;">
                     <span>Total Collected:</span>
-                    <span style="color: #10b981;">GHS 18,500 / GHS 24,800</span>
+                    <span style="color: #10b981;">GHS 18,500 </span>
                 </div>
             </section>
         </main>
@@ -739,5 +949,58 @@
             </div>
         </aside>
     </div>
+
+    <!-- EDIT ACCOUNT MODAL -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <h2>Edit Account</h2>
+
+                <form action="update_account.php" method="POST">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" value="<?php echo $_SESSION['first_name']; ?>">
+
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" value="<?php echo $_SESSION['last_name']; ?>">
+
+                    <label>Email</label>
+                    <input type="email" name="email" value="<?php echo $_SESSION['email']; ?>">
+
+                    <button type="submit">Save Changes</button>
+                    <button type="button" class="closeModal">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+
+<!-- DELETE CONFIRMATION MODAL -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <h2>Delete Account?</h2>
+
+                <p>This action cannot be undone.</p>
+
+                <a href="delete_account.php" class="danger-btn">Yes, delete my account</a>
+                <button type="button" class="closeModal">Cancel</button>
+            </div>
+        </div>
+
+    
+    <script src="../js/collab_work.js"></script>
+    <script>
+        document.getElementById("profileBtn").addEventListener("click", () => {
+            const menu = document.getElementById("profileDropdown");
+            menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (e) {
+            const dropdown = document.getElementById("profileDropdown");
+            const button = document.getElementById("profileBtn");
+
+            if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                dropdown.style.display = "none";
+            }
+        });
+    </script>
 </body>
 </html>

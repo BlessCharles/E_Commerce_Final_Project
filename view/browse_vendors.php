@@ -1,3 +1,23 @@
+<?php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if event_id is provided
+if (!isset($_GET['event_id'])) {
+    header('Location: budget_input.php');
+    exit();
+}
+
+$event_id = $_GET['event_id'];
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -381,7 +401,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <div class="header-top">
-            <a href="smart_recommend.php" class="back-link">← Back to Recommendations</a>
+            <a href="collab_work.php?event_id=<?php echo $event_id; ?>" class="back-link">← Back</a>
             <div class="header-controls">
                 <input type="text" class="search-box" placeholder="Search vendors...">
                 <select class="sort-dropdown">
