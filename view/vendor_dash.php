@@ -29,9 +29,7 @@ $image_path = $vendor['vendor_image'] ?? "default.jpg";
 
 $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
 
-
 ?>
-
 
 
 <!DOCTYPE html>
@@ -617,6 +615,14 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
             color: red;
             font-weight: bold;
         }
+
+        .vendor-badge.pending {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .vendor-badge.rejected {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
     </style>
 </head>
 <body>
@@ -627,7 +633,18 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
             <div class="logo-text">PlanSmart Ghana</div>
         </div>
         <div class="nav-right">
-            <div class="vendor-badge">✓ VERIFIED VENDOR</div>
+            <?php 
+            // Check vendor verification status
+            $verification_status = $vendor['verification_status'] ?? 'pending';
+            
+            if ($verification_status === 'approved'): 
+            ?>
+                <div class="vendor-badge">✓ VERIFIED VENDOR</div>
+            <?php elseif ($verification_status === 'rejected'): ?>
+                <div class="vendor-badge" style="background: linear-gradient(135deg, #ef4444, #dc2626);">❌ REJECTED</div>
+            <?php else: ?>
+                <div class="vendor-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706);">⏳ PENDING VERIFICATION</div>
+            <?php endif; ?>
             <div class="profile-wrapper">
                 <div class="user-avatar" id="profileBtn">👤</div>
 

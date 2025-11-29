@@ -381,7 +381,7 @@
     <!-- Page Header -->
     <div class="page-header">
         <div class="header-top">
-            <a href="#" class="back-link">← Back to Recommendations</a>
+            <a href="smart_recommend.php" class="back-link">← Back to Recommendations</a>
             <div class="header-controls">
                 <input type="text" class="search-box" placeholder="Search vendors...">
                 <select class="sort-dropdown">

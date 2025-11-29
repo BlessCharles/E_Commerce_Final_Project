@@ -431,6 +431,39 @@
             background: #10b981;
             color: white;
         }
+
+        /* CTA Button */
+        .cta-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn-continue {
+            padding: 18px 60px;
+            background: #fbbf24;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e3a8a;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
+            transition: all 0.3s;
+        }
+        
+        .btn-continue:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(251, 191, 36, 0.5);
+        }
+        
+        .btn-continue:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
         
         @media (max-width: 1200px) {
             .content-grid {
@@ -603,6 +636,11 @@
                         <div class="amount-value">GHS 300</div>
                         <div class="amount-percentage">2%</div>
                     </div>
+
+
+                </div>
+                <div class="cta-container">
+                <button type="submit" class="btn-continue" onclick = "window.location.href='collab_work.php';">Get Smart Recommendations →</button>
                 </div>
             </div>
             
@@ -615,7 +653,7 @@
                             <span class="category-icon">🍽️</span>
                             Catering Services
                         </div>
-                        <a href="#" class="browse-all">Browse All Caterers →</a>
+                        <a href="browse_vendors.php" class="browse-all">Browse All Caterers →</a>
                     </div>
                     
                     <div class="vendor-grid">

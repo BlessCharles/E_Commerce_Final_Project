@@ -212,17 +212,27 @@ class UserController {
     //Get redirect URL based on user type and profile completion
 
     private function get_redirect_url($user) {
+
+        // Admin redirect
+        if ($user['user_type'] === 'admin') {
+            return "../admin/admin_dash.php";
+        }
+
+        // Vendor redirect
         if ($user['user_type'] === 'vendor') {
             $userModel = new User();
+
             if ($userModel->vendor_profile_complete($user['user_id'])) {
                 return "../view/vendor_dash.php";
             } else {
                 return "../view/vendor_onboarding.php";
             }
-        } else {
-            return "../view/user_landing.php";
         }
+
+        // Default -> normal customer
+        return "../view/user_landing.php";
     }
+
 
 
 }

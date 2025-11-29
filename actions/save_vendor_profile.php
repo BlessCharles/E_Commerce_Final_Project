@@ -4,7 +4,7 @@ require_once "../classes/vendor_class.php";
 
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../login/login.php");
+    header("Location: ../view/login.php");
     exit();
 }
 
