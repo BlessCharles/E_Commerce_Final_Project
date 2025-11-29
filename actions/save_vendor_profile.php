@@ -2,7 +2,6 @@
 session_start();
 require_once "../classes/vendor_class.php";
 
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../view/login.php");
     exit();
@@ -24,20 +23,35 @@ $data = [
 ];
 
 // Handle image upload
-// Process image upload FIRST
 $image_path = null;
 
 if (isset($_FILES['vendor_image']) && $_FILES['vendor_image']['error'] === UPLOAD_ERR_OK) {
-    // handle upload
-    $image_path = 'uploads/vendor_' . $user_id . '.' . $extension; 
+    // Create uploads directory if it doesn't exist
+    $upload_dir = '../uploads';
+    if (!file_exists($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+    
+    // Get file extension
+    $extension = pathinfo($_FILES['vendor_image']['name'], PATHINFO_EXTENSION);
+    
+    // Create filename
+    $filename = 'vendor_' . $user_id . '.' . $extension;
+    $target_path = $upload_dir . '/' . $filename;
+    
+    // Move uploaded file
+    if (move_uploaded_file($_FILES['vendor_image']['tmp_name'], $target_path)) {
+        // Store relative path for database (without ../)
+        $image_path = 'uploads/' . $filename;
+    }
 }
 
-// Now save vendor
-$vendor_id = $vendor->save_vendor_profile($user_id, $_POST, $image_path);
+// Save vendor profile with image path
+$vendor_id = $vendor->save_vendor_profile($user_id, $data, $image_path);
+
 // Save vendor service checkboxes
 $services = isset($_POST['events']) ? $_POST['events'] : [];
 $vendor->save_vendor_services($vendor_id, $services);
-
 
 header("Location: ../view/vendor_dash.php");
 exit();

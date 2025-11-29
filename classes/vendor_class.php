@@ -114,7 +114,133 @@ class Vendor extends db_connection {
     }
 
     // ============================================================
-    // NEW METHODS FOR VENDOR APPROVAL SYSTEM - ADD BELOW THIS LINE
+    // VENDOR DASHBOARD METHODS
+    // ============================================================
+
+    /**
+     * Get vendor statistics for dashboard
+     * @param int $vendor_id
+     * @return array - Statistics array
+     */
+    public function get_vendor_stats($vendor_id) {
+        $conn = $this->db_conn();
+        
+        $stats = [];
+        
+        // Pending bookings count
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE vendor_id = ? AND status = 'pending'";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stats['pending_requests'] = $result->fetch_assoc()['count'];
+        
+        // Completed bookings count
+        $sql = "SELECT COUNT(*) as count FROM bookings WHERE vendor_id = ? AND status = 'completed'";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stats['completed_bookings'] = $result->fetch_assoc()['count'];
+        
+        // Average rating and total earnings
+        $sql = "SELECT rating, total_reviews FROM vendors WHERE vendor_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $vendor_data = $result->fetch_assoc();
+        $stats['average_rating'] = $vendor_data['rating'] ?? 0;
+        $stats['total_reviews'] = $vendor_data['total_reviews'] ?? 0;
+        
+        // Total earnings
+        $sql = "SELECT SUM(amount) as total FROM bookings WHERE vendor_id = ? AND status = 'completed'";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stats['total_earnings'] = $result->fetch_assoc()['total'] ?? 0;
+        
+        return $stats;
+    }
+
+    /**
+     * Get vendor bookings
+     * @param int $vendor_id
+     * @param string $status - Optional: filter by status
+     * @return array - Array of bookings
+     */
+    public function get_vendor_bookings($vendor_id, $status = null) {
+        $conn = $this->db_conn();
+        
+        $sql = "SELECT b.*, e.event_type, e.event_date, e.location as event_location, 
+                e.guest_count, u.first_name, u.last_name, u.email, u.phone
+                FROM bookings b
+                INNER JOIN events e ON b.event_id = e.event_id
+                INNER JOIN users u ON e.user_id = u.user_id
+                WHERE b.vendor_id = ?";
+        
+        if ($status) {
+            $sql .= " AND b.status = ?";
+        }
+        
+        $sql .= " ORDER BY b.created_at DESC";
+        
+        $stmt = $conn->prepare($sql);
+        
+        if ($status) {
+            $stmt->bind_param("is", $vendor_id, $status);
+        } else {
+            $stmt->bind_param("i", $vendor_id);
+        }
+        
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    /**
+     * Get vendor reviews
+     * @param int $vendor_id
+     * @return array - Array of reviews
+     */
+    public function get_vendor_reviews($vendor_id) {
+        $conn = $this->db_conn();
+        
+        $sql = "SELECT r.*, u.first_name, u.last_name, b.amount
+                FROM reviews r
+                INNER JOIN bookings b ON r.booking_id = b.booking_id
+                INNER JOIN users u ON r.user_id = u.user_id
+                WHERE r.vendor_id = ?
+                ORDER BY r.created_at DESC";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $vendor_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
+    /**
+     * Update booking status
+     * @param int $booking_id
+     * @param string $status
+     * @return bool
+     */
+    public function update_booking_status($booking_id, $status) {
+        $conn = $this->db_conn();
+        
+        $sql = "UPDATE bookings SET status = ?, updated_at = NOW() WHERE booking_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("si", $status, $booking_id);
+        
+        return $stmt->execute();
+    }
+
+    // ============================================================
+    // VENDOR APPROVAL METHODS
     // ============================================================
 
     /**
@@ -158,7 +284,6 @@ class Vendor extends db_connection {
         $stmt->bind_param("ii", $admin_id, $vendor_id);
         
         if ($stmt->execute()) {
-            // Optional: Send email notification to vendor
             $this->send_approval_email($vendor_id);
             return true;
         }
@@ -186,7 +311,6 @@ class Vendor extends db_connection {
         $stmt->bind_param("isi", $admin_id, $reason, $vendor_id);
         
         if ($stmt->execute()) {
-            // Optional: Send email notification to vendor
             $this->send_rejection_email($vendor_id, $reason);
             return true;
         }
@@ -201,7 +325,6 @@ class Vendor extends db_connection {
     private function send_approval_email($vendor_id) {
         $conn = $this->db_conn();
         
-        // Get vendor details
         $sql = "SELECT v.business_name, u.email, u.first_name 
                 FROM vendors v
                 INNER JOIN users u ON v.user_id = u.user_id
@@ -237,7 +360,7 @@ class Vendor extends db_connection {
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
             $headers .= "From: no-reply@plansmartghana.com" . "\r\n";
             
-            // Uncomment the line below when you're ready to send emails
+            // Uncomment when ready to send emails
             // mail($to, $subject, $message, $headers);
         }
     }
@@ -250,7 +373,6 @@ class Vendor extends db_connection {
     private function send_rejection_email($vendor_id, $reason) {
         $conn = $this->db_conn();
         
-        // Get vendor details
         $sql = "SELECT v.business_name, u.email, u.first_name 
                 FROM vendors v
                 INNER JOIN users u ON v.user_id = u.user_id
@@ -283,7 +405,7 @@ class Vendor extends db_connection {
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
             $headers .= "From: no-reply@plansmartghana.com" . "\r\n";
             
-            // Uncomment the line below when you're ready to send emails
+            // Uncomment when ready to send emails
             // mail($to, $subject, $message, $headers);
         }
     }

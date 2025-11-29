@@ -16,34 +16,37 @@ if (!isset($_FILES['vendor_image']) || $_FILES['vendor_image']['error'] !== UPLO
     exit();
 }
 
-// Ensure uploads folder exists
+// Create uploads directory structure: uploads/uXX/pXX/
 $upload_base = '../uploads';
-if (!file_exists($upload_base)) {
-    mkdir($upload_base, 0755, true);
+$user_dir = $upload_base . '/u' . $user_id;
+$product_dir = $user_dir . '/p' . ($product_id > 0 ? $product_id : 'temp_' . time());
+
+// Create directories if they don't exist
+if (!file_exists($user_dir)) {
+    mkdir($user_dir, 0755, true);
+}
+if (!file_exists($product_dir)) {
+    mkdir($product_dir, 0755, true);
 }
 
-// Allowed file types
-$allowed_types = ['image/jpeg', 'image/png', 'image/webp'];
+// Validate file type
+$allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 $file_type = $_FILES['vendor_image']['type'];
-
 if (!in_array($file_type, $allowed_types)) {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid file type']);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid file type. Only images allowed']);
     exit();
 }
 
-// Set final filename (each vendor gets ONE image)
+// Generate unique filename
 $extension = pathinfo($_FILES['vendor_image']['name'], PATHINFO_EXTENSION);
-$filename = 'vendor_' . $user_id . '.' . $extension;
-$target_path = $upload_base . '/' . $filename;
+$filename = 'vendor_' . time() . '_' . rand(1000, 9999) . '.' . $extension;
+$target_path = $product_dir . '/' . $filename;
 
 // Move uploaded file
 if (move_uploaded_file($_FILES['vendor_image']['tmp_name'], $target_path)) {
-    // Return path to save in database
-    echo json_encode([
-        'status' => 'success',
-        'message' => 'Image uploaded',
-        'path' => 'uploads/' . $filename
-    ]);
+    // Return relative path for database storage
+    $db_path = str_replace('../', '', $target_path);
+    echo json_encode(['status' => 'success', 'message' => 'Image uploaded', 'path' => $db_path]);
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Failed to save file']);
+    echo json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
 }
