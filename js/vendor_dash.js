@@ -12,3 +12,26 @@ document.querySelectorAll(".closeModal").forEach(btn => {
         document.querySelectorAll(".modal").forEach(m => m.style.display = "none");
     });
 });
+
+
+function acceptBooking(id) {
+    fetch("accept_booking.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "booking_id=" + id
+    })
+    .then(r => r.text())
+    .then(() => location.reload());
+}
+
+function declineBooking(id) {
+    fetch("decline_booking.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "booking_id=" + id
+    })
+    .then(r => r.text())
+    .then(() => location.reload());
+}
+
+

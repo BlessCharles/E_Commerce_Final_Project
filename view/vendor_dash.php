@@ -1,18 +1,37 @@
 <?php
-// views/budget_input.php
 session_start();
 
-// Check if user is logged in
+// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+    header("Location: login.php");
     exit();
 }
 
+require_once "../classes/vendor_class.php";
 $user_id = $_SESSION['user_id'];
+
+$vendorObj = new Vendor();
+$vendor = $vendorObj->get_vendor_by_user($user_id);
+
+$business_name = $vendor['business_name'] ?? "Your Business";
+    // FETCH THE VENDOR DATA
+
+$business_name = $vendor['business_name'] ?? "Your Business";
+$business_description = $vendor['business_description'] ?? "";
+$category = $vendor['category'] ?? "";
+$years_experience = $vendor['years_experience'] ?? "";
+$location = $vendor['location'] ?? "";
+$address = $vendor['address'] ?? "";
+$starting_price = $vendor['starting_price'] ?? "";
+$price_range = $vendor['price_range'] ?? "";
+$image_path = $vendor['vendor_image'] ?? "default.jpg";
+
+
 $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
 
 
 ?>
+
 
 
 <!DOCTYPE html>
@@ -632,10 +651,11 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
         <!-- Welcome Section -->
         <div class="welcome-section">
             <div class="welcome-text">
-                <h1>Welcome back, Ama's Kitchen! 👋</h1>
+                <h1>Welcome, <?php echo htmlspecialchars($business_name); ?>! 👋</h1>
+
                 <p>Here's what's happening with your business today</p>
             </div>
-            <button class="btn-edit-profile">✏️ Edit Business Profile</button>
+            <button class="btn-edit-profile" onclick = "window.location.href='vendor_prof.php';">✏️ Edit Business Profile</button>
         </div>
         
         <!-- Stats Grid -->
@@ -678,113 +698,118 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
         <div class="content-area">
             <!-- Booking Requests -->
             <div class="requests-grid">
-                <!-- Request 1 - Pending -->
-                <div class="request-card">
-                    <div class="request-header">
-                        <div class="request-info">
-                            <h3>Kwame Mensah</h3>
-                            <p class="request-event">🕊️ Funeral Service</p>
-                            <p class="request-date">📅 January 15, 2025 • Koforidua</p>
-                        </div>
-                        <div class="request-price">
-                            <div class="price-amount">GHS 9,000</div>
-                            <span class="status-badge status-pending">⏳ Pending</span>
-                        </div>
-                    </div>
+                <?php if (!empty($bookings)): ?>
+                    <?php foreach ($bookings as $b): ?>
+
+
                     
-                    <div class="request-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Guest Count</div>
-                            <div class="detail-value">300 people</div>
+                        
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div class="request-info">
+                                    <h3><?= $b['first_name'].' '.$b['last_name'] ?></h3>
+
+                                    <p class="request-event">🎉 <?= ucfirst($b['event_type']) ?></p>
+
+                                    <p class="request-date">
+                                        📅 <?= date("F j, Y", strtotime($b['event_date'])) ?> 
+                                        • <?= $b['event_location'] ?>
+                                    </p>
+                                </div>
+
+                                <div class="request-price">
+                                    <div class="price-amount">GHS <?= number_format($b['amount']) ?></div>
+
+                                    <span class="status-badge 
+                                        status-<?= $b['status'] == 'pending' ? 'pending' : 'confirmed' ?>">
+                                        <?= ucfirst($b['status']) ?>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="request-details">
+                                <div class="detail-item">
+                                    <div class="detail-label">Guest Count</div>
+                                    <div class="detail-value"><?= $b['guest_count'] ?> people</div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-label">Requested</div>
+                                    <div class="detail-value">
+                                        <?= date("M d, Y", strtotime($b['created_at'])) ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="request-actions">
+                                <?php if ($b['status'] == "pending"): ?>
+                                    <button class="btn-accept">✓ Accept</button>
+                                    <button class="btn-decline">✗ Decline</button>
+                                <?php endif; ?>
+                                <button class="btn-contact">💬 Contact Customer</button>
+                            </div>
                         </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Event Type</div>
-                            <div class="detail-value">Funeral</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Requested</div>
-                            <div class="detail-value">2 hours ago</div>
-                        </div>
+
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <p class="empty-text">No Booking Requests</p>
+                        <p class="empty-subtext">New bookings will appear here</p>
                     </div>
-                    
-                    <div class="request-actions">
-                        <button class="btn-accept">✓ Accept Booking</button>
-                        <button class="btn-decline">✗ Decline</button>
-                        <button class="btn-contact">💬 Contact Customer</button>
-                    </div>
-                </div>
-                
-                <!-- Request 2 - Confirmed -->
-                <div class="request-card">
-                    <div class="request-header">
-                        <div class="request-info">
-                            <h3>Akosua Boateng</h3>
-                            <p class="request-event">💒 Wedding Reception</p>
-                            <p class="request-date">📅 February 20, 2025 • Accra</p>
-                        </div>
-                        <div class="request-price">
-                            <div class="price-amount">GHS 12,500</div>
-                            <span class="status-badge status-confirmed">✓ Confirmed</span>
-                        </div>
-                    </div>
-                    
-                    <div class="request-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Guest Count</div>
-                            <div class="detail-value">200 people</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Event Type</div>
-                            <div class="detail-value">Wedding</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Confirmed</div>
-                            <div class="detail-value">Yesterday</div>
-                        </div>
-                    </div>
-                    
-                    <div class="request-actions">
-                        <button class="btn-contact" style="flex: 1;">💬 Message Customer</button>
-                        <button class="btn-accept" style="flex: 1;">📄 View Details</button>
-                    </div>
-                </div>
-                
-                <!-- Request 3 - Pending -->
-                <div class="request-card">
-                    <div class="request-header">
-                        <div class="request-info">
-                            <h3>Yaw Osei</h3>
-                            <p class="request-event">👶 Naming Ceremony</p>
-                            <p class="request-date">📅 January 25, 2025 • Tema</p>
-                        </div>
-                        <div class="request-price">
-                            <div class="price-amount">GHS 5,000</div>
-                            <span class="status-badge status-pending">⏳ Pending</span>
-                        </div>
-                    </div>
-                    
-                    <div class="request-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Guest Count</div>
-                            <div class="detail-value">80 people</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Event Type</div>
-                            <div class="detail-value">Naming Ceremony</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Requested</div>
-                            <div class="detail-value">5 hours ago</div>
-                        </div>
-                    </div>
-                    
-                    <div class="request-actions">
-                        <button class="btn-accept">✓ Accept Booking</button>
-                        <button class="btn-decline">✗ Decline</button>
-                        <button class="btn-contact">💬 Contact Customer</button>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
+
+            <div class="reviews-grid">
+                <?php if (!empty($reviews)): ?>
+                    <?php foreach ($reviews as $r): ?>
+
+                    
+
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        <?= strtoupper($r['first_name'][0]) ?>
+                                    </div>
+
+                                    <div class="reviewer-details">
+                                        <h4><?= $r['first_name'].' '.$r['last_name'] ?></h4>
+                                        <p class="review-event">Booking Amount: GHS <?= number_format($r['amount']) ?></p>
+                                    </div>
+                                </div>
+
+                                <div class="review-rating">
+                                    <div class="stars">⭐ <?= $r['rating'] ?></div>
+                                </div>
+                            </div>
+
+                            <p class="review-text"><?= $r['comment'] ?></p>
+
+                            <div class="review-date"><?= date("F j, Y", strtotime($r['created_at'])) ?></div>
+                        </div>
+
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p class="empty-text">No Reviews Yet</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <div class="business-card">
+                <img src="<?= $vendor['image'] ?? 'default.jpg' ?>" class="biz-img">
+
+                <h2><?= $business_name ?></h2>
+                <p><?= ucfirst($vendor['category']) ?></p>
+                <p>📍 <?= $vendor['location'] ?></p>
+                <p>⭐ <?= $vendor['rating'] ?> (<?= $vendor['total_reviews'] ?> reviews)</p>
+                <p>Starting at: GHS <?= number_format($vendor['starting_price']) ?></p>
+            </div>
+
+
+
+            
         </div>
     </div>
 

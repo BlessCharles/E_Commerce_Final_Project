@@ -95,5 +95,18 @@ class Vendor extends db_connection {
             $stmt->execute();
         }
     }
+
+    public function get_vendor_by_user($user_id) {
+    $conn = $this->db_conn();
+
+    $sql = "SELECT * FROM vendors WHERE user_id = ? LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
+
 }
 ?>

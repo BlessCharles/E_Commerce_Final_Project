@@ -38,15 +38,6 @@ $vendor_id = $vendor->save_vendor_profile($user_id, $_POST, $image_path);
 $services = isset($_POST['events']) ? $_POST['events'] : [];
 $vendor->save_vendor_services($vendor_id, $services);
 
-// Redirect to vendor dashboard
-if (isset($_POST['save_later'])) {
-    header("Location: ../view/vendor_dash.php");
-    exit();
-}
 
-if (isset($_POST['complete_profile'])) {
-    header("Location: ../view/vendor_dash.php");
-    exit();
-}
-
+header("Location: ../view/vendor_dash.php");
 exit();

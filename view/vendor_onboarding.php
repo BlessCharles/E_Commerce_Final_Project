@@ -388,10 +388,10 @@ $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
                                 <option value="catering">Catering</option>
                                 <option value="decoration">Decoration</option>
                                 <option value="photography">Photography</option>
-                                <option value="music">Music & Entertainment</option>
+                                <option value="music">Sound</option>
                                 <option value="makeup">Makeup & Beauty</option>
                                 <option value="transportation">Transportation</option>
-                                <option value="rental">Equipment Rental</option>
+                                <option value="rental">Tent</option>
                                 <option value="other">Other Services</option>
                             </select>
                         </div>
