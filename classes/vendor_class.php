@@ -114,6 +114,123 @@ class Vendor extends db_connection {
     }
 
     // ============================================================
+    // SMART RECOMMENDATIONS METHODS
+    // ============================================================
+
+    /**
+     * Get verified vendors by category within budget range
+     * @param string $category
+     * @param float $budget_min
+     * @param float $budget_max
+     * @param int $limit
+     * @return array|false
+     */
+    public function get_vendors_by_category_and_budget($category, $budget_min, $budget_max, $limit = 3) {
+        $conn = $this->db_conn();
+        if (!$conn) {
+            return false;
+        }
+
+        $category = mysqli_real_escape_string($conn, $category);
+        
+        $sql = "SELECT 
+                    v.vendor_id,
+                    v.business_name,
+                    v.business_description,
+                    v.category,
+                    v.starting_price,
+                    v.rating,
+                    v.total_reviews,
+                    v.location,
+                    v.image,
+                    u.email,
+                    u.phone
+                FROM vendors v
+                INNER JOIN users u ON v.user_id = u.user_id
+                WHERE v.category = '$category'
+                AND v.verification_status = 'approved'
+                AND v.is_active = 1
+                AND v.starting_price BETWEEN $budget_min AND $budget_max
+                ORDER BY v.rating DESC, v.total_reviews DESC
+                LIMIT $limit";
+        
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Get vendor details by ID
+     * @param int $vendor_id
+     * @return array|false
+     */
+    public function get_vendor_details($vendor_id) {
+        $conn = $this->db_conn();
+        if (!$conn) {
+            return false;
+        }
+
+        $sql = "SELECT 
+                    v.*,
+                    u.email,
+                    u.phone,
+                    u.first_name,
+                    u.last_name
+                FROM vendors v
+                INNER JOIN users u ON v.user_id = u.user_id
+                WHERE v.vendor_id = $vendor_id
+                AND v.is_active = 1";
+        
+        return $this->db_fetch_one($sql);
+    }
+
+    /**
+     * Get all verified vendors by category
+     * @param string $category
+     * @return array|false
+     */
+    public function get_all_vendors_by_category($category) {
+        $conn = $this->db_conn();
+        if (!$conn) {
+            return false;
+        }
+
+        $category = mysqli_real_escape_string($conn, $category);
+        
+        $sql = "SELECT 
+                    v.vendor_id,
+                    v.business_name,
+                    v.business_description,
+                    v.category,
+                    v.starting_price,
+                    v.rating,
+                    v.total_reviews,
+                    v.location,
+                    v.image
+                FROM vendors v
+                WHERE v.category = '$category'
+                AND v.verification_status = 'approved'
+                AND v.is_active = 1
+                ORDER BY v.rating DESC, v.total_reviews DESC";
+        
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Check if vendor exists and is verified
+     * @param int $vendor_id
+     * @return bool
+     */
+    public function is_vendor_verified($vendor_id) {
+        $sql = "SELECT vendor_id FROM vendors 
+                WHERE vendor_id = $vendor_id 
+                AND verification_status = 'approved' 
+                AND is_active = 1 
+                LIMIT 1";
+        
+        $result = $this->db_fetch_one($sql);
+        return $result !== false;
+    }
+
+    // ============================================================
     // VENDOR DASHBOARD METHODS
     // ============================================================
 
@@ -201,19 +318,25 @@ class Vendor extends db_connection {
     }
 
     /**
-     * Get vendor reviews
+     * Get vendor reviews (updated to avoid confusion with get_vendor_reviews in smart recommendations)
      * @param int $vendor_id
+     * @param int $limit - Optional limit
      * @return array - Array of reviews
      */
-    public function get_vendor_reviews($vendor_id) {
+    public function get_vendor_reviews($vendor_id, $limit = null) {
         $conn = $this->db_conn();
         
-        $sql = "SELECT r.*, u.first_name, u.last_name, b.amount
+        $sql = "SELECT r.*, u.first_name, u.last_name, b.amount,
+                r.rating, r.comment, r.created_at
                 FROM reviews r
                 INNER JOIN bookings b ON r.booking_id = b.booking_id
                 INNER JOIN users u ON r.user_id = u.user_id
                 WHERE r.vendor_id = ?
                 ORDER BY r.created_at DESC";
+        
+        if ($limit) {
+            $sql .= " LIMIT $limit";
+        }
         
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $vendor_id);

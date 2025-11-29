@@ -34,13 +34,14 @@ class Budget extends db_connection {
     function auto_allocate_category($service, $total_budget)
     {
         $percentages = [
-            "catering"    => 0.25,
-            "venue"       => 0.30,
-            "decoration"  => 0.15,
-            "photography" => 0.10,
-            "tent"        => 0.10,
-            "sound"       => 0.05,
-            "transport"   => 0.05
+            "catering"       => 0.36,
+            "venue"          => 0.18,
+            "tent"           => 0.14,
+            "photography"    => 0.10,
+            "decoration"     => 0.08,
+            "sound"          => 0.06,
+            "transportation" => 0.06,
+            "miscellaneous"  => 0.02
         ];
 
         if (!isset($percentages[$service])) {
@@ -49,4 +50,81 @@ class Budget extends db_connection {
 
         return $total_budget * $percentages[$service];
     }
+
+    /**
+     * Get event by ID
+     * @param int $event_id
+     * @return array|false
+     */
+    function get_event_by_id($event_id)
+    {
+        $sql = "SELECT * FROM events WHERE event_id = $event_id LIMIT 1";
+        return $this->db_fetch_one($sql);
+    }
+
+    /**
+     * Get all budget allocations for an event
+     * @param int $event_id
+     * @return array|false
+     */
+    function get_event_allocations($event_id)
+    {
+        $sql = "SELECT * FROM budget_allocations WHERE event_id = $event_id ORDER BY allocated_amount DESC";
+        return $this->db_fetch_all($sql);
+    }
+
+    /**
+     * Get specific allocation by event and category
+     * @param int $event_id
+     * @param string $category
+     * @return array|false
+     */
+    function get_allocation_by_category($event_id, $category)
+    {
+        $conn = $this->db_conn();
+        $category = mysqli_real_escape_string($conn, $category);
+        
+        $sql = "SELECT * FROM budget_allocations 
+                WHERE event_id = $event_id 
+                AND category = '$category' 
+                LIMIT 1";
+        
+        return $this->db_fetch_one($sql);
+    }
+
+    /**
+     * Update spent amount for a category
+     * @param int $event_id
+     * @param string $category
+     * @param float $amount
+     * @return bool
+     */
+    function update_spent_amount($event_id, $category, $amount)
+    {
+        $conn = $this->db_conn();
+        $category = mysqli_real_escape_string($conn, $category);
+        
+        $sql = "UPDATE budget_allocations 
+                SET spent_amount = spent_amount + $amount 
+                WHERE event_id = $event_id 
+                AND category = '$category'";
+        
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Get total spent for an event
+     * @param int $event_id
+     * @return float
+     */
+    function get_total_spent($event_id)
+    {
+        $sql = "SELECT SUM(spent_amount) as total_spent 
+                FROM budget_allocations 
+                WHERE event_id = $event_id";
+        
+        $result = $this->db_fetch_one($sql);
+        return $result ? (float)$result['total_spent'] : 0;
+    }
 }
+?>

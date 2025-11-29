@@ -1,3 +1,24 @@
+<?php
+// views/smart_recommend.php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Check if event_id is provided
+if (!isset($_GET['event_id'])) {
+    header('Location: budget_input.php');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+$event_id = $_GET['event_id'];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,6 +80,47 @@
             justify-content: center;
             color: white;
             font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profile-wrapper {
+            position: relative;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 220px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            padding: 10px;
+            display: none;
+            z-index: 10;
+        }
+
+        .dropdown-header {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 12px;
+            color: #1e3a8a;
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f5f9;
+        }
+
+        .dropdown-item.logout {
+            color: red;
+            font-weight: bold;
         }
         
         /* Progress Bar */
@@ -90,7 +152,7 @@
             position: absolute;
             top: 20px;
             left: 0;
-            width: 66%;
+            width: 50%;
             height: 3px;
             background: #fbbf24;
             z-index: 1;
@@ -189,6 +251,10 @@
             font-size: 14px;
             font-weight: 600;
         }
+
+        .budget-status.over-budget {
+            background: rgba(239, 68, 68, 0.3);
+        }
         
         .progress-bar-container {
             background: rgba(255,255,255,0.2);
@@ -200,7 +266,6 @@
         .progress-bar-fill {
             background: #fbbf24;
             height: 100%;
-            width: 99.2%;
             border-radius: 6px;
             transition: width 0.5s;
         }
@@ -427,7 +492,7 @@
             background: #f59e0b;
         }
         
-        .btn-selected {
+        .btn-select.btn-selected {
             background: #10b981;
             color: white;
         }
@@ -435,11 +500,13 @@
         /* CTA Button */
         .cta-container {
             display: flex;
-            justify-content: center;
-            margin-top: 40px;
+            justify-content: center; /* center them */
+            gap: 20px; /* space between */
+            margin-top: 30px;
         }
 
         .btn-continue {
+            text-decoration: none;
             padding: 18px 60px;
             background: #fbbf24;
             border: none;
@@ -450,6 +517,7 @@
             cursor: pointer;
             box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4);
             transition: all 0.3s;
+            width: auto;
         }
         
         .btn-continue:hover {
@@ -464,6 +532,27 @@
             cursor: not-allowed;
             box-shadow: none;
         }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading-spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #fbbf24;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         
         @media (max-width: 1200px) {
             .content-grid {
@@ -472,6 +561,24 @@
             
             .vendor-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .budget-breakdown {
+                position: relative;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .vendor-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                padding: 15px 20px;
+            }
+
+            .progress-container {
+                padding: 15px 20px;
             }
         }
     </style>
@@ -483,7 +590,17 @@
             <div class="logo-icon">🎉</div>
             <div class="logo-text">PlanSmart Ghana</div>
         </div>
-        <div class="user-avatar">KM</div>
+        
+        <div class="profile-wrapper">
+            <div class="user-avatar" id="profileBtn">👤</div>
+            <div class="profile-dropdown" id="profileDropdown">
+                <div class="dropdown-header">
+                    <strong><?php echo htmlspecialchars($user_name); ?></strong>
+                </div>
+                <a href="profile.php" class="dropdown-item">Edit Account</a>
+                <a href="#" class="dropdown-item logout" onclick="event.preventDefault(); if (confirm('Are you sure you want to log out?')) {window.location.href='logout.php'; }">Logout</a>
+            </div>
+        </div>
     </nav>
     
     <!-- Progress Bar -->
@@ -511,258 +628,72 @@
     <div class="main-content">
         <div class="page-header">
             <h1>Your Personalized Vendor Recommendations</h1>
-            <p>We've matched your budget with the best vendors for your event</p>
+            <p>We've matched your budget with the best verified vendors for your event</p>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading your personalized recommendations...</p>
         </div>
         
         <!-- Budget Tracker -->
-        <div class="budget-tracker">
+        <div class="budget-tracker" style="display: none;">
             <div class="budget-info">
                 <div>
-                    <div class="budget-amount">GHS 24,800</div>
-                    <div class="budget-total">of GHS 25,000 budget</div>
+                    <div class="budget-amount">GHS 0.00</div>
+                    <div class="budget-total">of GHS 0.00 budget</div>
                 </div>
-                <div class="budget-status">✓ Within Budget</div>
+                <div class="budget-status">Loading...</div>
             </div>
             <div class="progress-bar-container">
-                <div class="progress-bar-fill"></div>
+                <div class="progress-bar-fill" style="width: 0%"></div>
             </div>
         </div>
         
         <!-- Two Column Layout -->
-        <div class="content-grid">
+        <div class="content-grid" style="display: none;">
             <!-- Budget Breakdown Sidebar -->
             <div class="budget-breakdown">
                 <h3 class="breakdown-title">Budget Breakdown</h3>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            🍽️ Catering
-                        </div>
-                        <div class="breakdown-bar" style="width: 180px; background: #ef4444;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 9,000</div>
-                        <div class="amount-percentage">36%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            🏛️ Venue
-                        </div>
-                        <div class="breakdown-bar" style="width: 90px; background: #3b82f6;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 4,500</div>
-                        <div class="amount-percentage">18%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            ⛺ Tent & Chairs
-                        </div>
-                        <div class="breakdown-bar" style="width: 90px; background: #8b5cf6;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 3,500</div>
-                        <div class="amount-percentage">14%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            📸 Photography
-                        </div>
-                        <div class="breakdown-bar" style="width: 62px; background: #10b981;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 2,500</div>
-                        <div class="amount-percentage">10%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            🎨 Decoration
-                        </div>
-                        <div class="breakdown-bar" style="width: 50px; background: #f59e0b;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 2,000</div>
-                        <div class="amount-percentage">8%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            🔊 Sound System
-                        </div>
-                        <div class="breakdown-bar" style="width: 37px; background: #ec4899;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 1,500</div>
-                        <div class="amount-percentage">6%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            🚌 Transportation
-                        </div>
-                        <div class="breakdown-bar" style="width: 37px; background: #06b6d4;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 1,500</div>
-                        <div class="amount-percentage">6%</div>
-                    </div>
-                </div>
-                
-                <div class="breakdown-item">
-                    <div>
-                        <div class="breakdown-label">
-                            📋 Miscellaneous
-                        </div>
-                        <div class="breakdown-bar" style="width: 12px; background: #94a3b8;"></div>
-                    </div>
-                    <div class="breakdown-amount">
-                        <div class="amount-value">GHS 300</div>
-                        <div class="amount-percentage">2%</div>
-                    </div>
-
-
-                </div>
-                <div class="cta-container">
-                <button type="submit" class="btn-continue" onclick = "window.location.href='collab_work.php';">Get Smart Recommendations →</button>
-                </div>
+                <!-- Will be populated by JavaScript -->
+        
             </div>
+
+            
+
             
             <!-- Vendor Recommendations -->
             <div class="recommendations-section">
-                <!-- Catering -->
-                <div class="category-section">
-                    <div class="category-header">
-                        <div class="category-title">
-                            <span class="category-icon">🍽️</span>
-                            Catering Services
-                        </div>
-                        <a href="browse_vendors.php" class="browse-all">Browse All Caterers →</a>
-                    </div>
-                    
-                    <div class="vendor-grid">
-                        <div class="vendor-card">
-                            <div class="vendor-image">👨‍🍳</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Ama's Kitchen</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.8</span>
-                                <span>(127 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 9,000</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select btn-selected">✓ Selected</button>
-                            </div>
-                        </div>
-                        
-                        <div class="vendor-card">
-                            <div class="vendor-image">🍴</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Royal Feast Catering</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.6</span>
-                                <span>(94 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 8,800</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select">Select</button>
-                            </div>
-                        </div>
-                        
-                        <div class="vendor-card">
-                            <div class="vendor-image">🥘</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Tasty Bites Ghana</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.7</span>
-                                <span>(82 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 9,200</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select">Select</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Photography -->
-                <div class="category-section">
-                    <div class="category-header">
-                        <div class="category-title">
-                            <span class="category-icon">📸</span>
-                            Photography Services
-                        </div>
-                        <a href="#" class="browse-all">Browse All Photographers →</a>
-                    </div>
-                    
-                    <div class="vendor-grid">
-                        <div class="vendor-card">
-                            <div class="vendor-image">📷</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Lens & Light Studios</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.9</span>
-                                <span>(156 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 2,500</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select">Select</button>
-                            </div>
-                        </div>
-                        
-                        <div class="vendor-card">
-                            <div class="vendor-image">📸</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Kwame Photography</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.7</span>
-                                <span>(103 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 2,300</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select">Select</button>
-                            </div>
-                        </div>
-                        
-                        <div class="vendor-card">
-                            <div class="vendor-image">🎥</div>
-                            <div class="vendor-badge">✓ VERIFIED</div>
-                            <div class="vendor-name">Moments Captured GH</div>
-                            <div class="vendor-rating">
-                                <span class="stars">⭐ 4.8</span>
-                                <span>(89 reviews)</span>
-                            </div>
-                            <div class="vendor-price">GHS 2,600</div>
-                            <div class="vendor-actions">
-                                <button class="btn-view">View Details</button>
-                                <button class="btn-select">Select</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Will be populated by JavaScript -->
             </div>
         </div>
+            <!-- TWO BUTTONS UNDER BREAKDOWN -->
+        <div class="cta-container">
+            <a href="browse_vendors.php" type="submit" class="btn-continue">Browse Vendors</a>
+            <a href="collab_work.php" type="submit" class="btn-continue">Continue to Collab</a>
+        </div>
+
+        
     </div>
+    
+    <script src="../js/smart_recommend.js"></script>
+    <script>
+        // Profile dropdown toggle
+        document.getElementById("profileBtn").addEventListener("click", () => {
+            const menu = document.getElementById("profileDropdown");
+            menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener("click", function (e) {
+            const dropdown = document.getElementById("profileDropdown");
+            const button = document.getElementById("profileBtn");
+
+            if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                dropdown.style.display = "none";
+            }
+        });
+    </script>
 </body>
 </html>
