@@ -6,10 +6,9 @@ require_once __DIR__ . '/../classes/event_class.php';
 
 class RecommendationController {
 
-    /**
-     * Get recommendations for an event
-     * Returns event details, budget allocations, and vendor recommendations
-     */
+    
+    //Get recommendations for an event
+
     public function get_event_recommendations($event_id, $user_id) {
         $budgetClass = new Budget();
         $vendorClass = new Vendor();
@@ -43,7 +42,7 @@ class RecommendationController {
             $allocated_amount = $allocation['allocated_amount'];
             $total_allocated += $allocated_amount;
 
-            // NEW LOGIC: Show vendors from 0 to allocated budget
+            // Show vendors from 0 to allocated budget
             // This ensures we only show vendors the user can afford
             $budget_min = 0;
             $budget_max = $allocated_amount;
@@ -72,9 +71,9 @@ class RecommendationController {
         ];
     }
 
-    /**
-     * AJAX handler to get recommendations
-     */
+    
+    //AJAX handler to get recommendations
+    
     public function get_recommendations_ajax() {
         session_start();
 
@@ -98,9 +97,9 @@ class RecommendationController {
         return $this->get_event_recommendations($event_id, $user_id);
     }
 
-    /**
-     * Get all vendors for a category (for browse all)
-     */
+    
+    //Get all vendors for a category (for browse all)
+    
     public function browse_category_ajax() {
         session_start();
 
@@ -130,12 +129,9 @@ class RecommendationController {
         ];
     }
 
-    /**
-     * Save vendor selections as bookings
-     * @param int $event_id
-     * @param array $vendors - array with category => {vendor_id, price}
-     * @return array
-     */
+    
+    //Save vendor selections as bookings
+    
     public function save_vendor_selections($event_id, $vendors) {
         session_start();
         

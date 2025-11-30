@@ -16,7 +16,7 @@ if (!isset($_GET['event_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
-$event_id = $_GET['event_id']; // ADD THIS LINE
+$event_id = $_GET['event_id'];
 ?>
 
 <!DOCTYPE html>

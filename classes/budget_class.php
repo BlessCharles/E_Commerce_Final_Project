@@ -51,34 +51,27 @@ class Budget extends db_connection {
         return $total_budget * $percentages[$service];
     }
 
-    /**
-     * Get event by ID
-     * @param int $event_id
-     * @return array|false
-     */
+    
+    //Get event by ID
+    
     function get_event_by_id($event_id)
     {
         $sql = "SELECT * FROM events WHERE event_id = $event_id LIMIT 1";
         return $this->db_fetch_one($sql);
     }
 
-    /**
-     * Get all budget allocations for an event
-     * @param int $event_id
-     * @return array|false
-     */
+    
+    //Get all budget allocations for an event
+    
     function get_event_allocations($event_id)
     {
         $sql = "SELECT * FROM budget_allocations WHERE event_id = $event_id ORDER BY allocated_amount DESC";
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Get specific allocation by event and category
-     * @param int $event_id
-     * @param string $category
-     * @return array|false
-     */
+    
+    //Get specific allocation by event and category
+    
     function get_allocation_by_category($event_id, $category)
     {
         $conn = $this->db_conn();
@@ -92,13 +85,9 @@ class Budget extends db_connection {
         return $this->db_fetch_one($sql);
     }
 
-    /**
-     * Update spent amount for a category
-     * @param int $event_id
-     * @param string $category
-     * @param float $amount
-     * @return bool
-     */
+    
+    //Update spent amount for a category
+    
     function update_spent_amount($event_id, $category, $amount)
     {
         $conn = $this->db_conn();
@@ -112,11 +101,9 @@ class Budget extends db_connection {
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Get total spent for an event
-     * @param int $event_id
-     * @return float
-     */
+    
+    //Get total spent for an event
+    
     function get_total_spent($event_id)
     {
         $sql = "SELECT SUM(spent_amount) as total_spent 

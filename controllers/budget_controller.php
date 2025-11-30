@@ -29,12 +29,12 @@ function createEvent(){
     $guest_count = $_POST['guest_count'];
     $event_date = $_POST['event_date'];
 
-    $event_type = "wedding"; // TEMP (change later)
-    $event_name = "My Event"; // TEMP (change later)
+    $event_type = "wedding";
+    $event_name = "My Event";
 
     $budgetClass = new Budget();
 
-    // 1. Create event
+    //Create event
     $event_id = $budgetClass->create_event(
         $user_id,
         $event_type,
@@ -49,7 +49,7 @@ function createEvent(){
         return;
     }
 
-    // 2. Save service selections as budget allocations
+    //Save service selections as budget allocations
     foreach ($services as $service) {
 
         // Example allocation per category

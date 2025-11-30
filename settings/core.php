@@ -4,23 +4,23 @@ session_start();
 // For header redirection
 ob_start();
 
-/**
- * Check if user is logged in
- */
+
+//Check if user is logged in
+
 function isLoggedIn() {
     return isset($_SESSION['user_id']);
 }
 
-/**
- * Check if user is logged in (alias for consistency)
- */
+
+//Check if user is logged in (alias for consistency)
+
 function is_logged_in() {
     return isLoggedIn();
 }
 
-/**
- * Check if user is admin
- */
+
+//Check if user is admin
+
 function isAdmin() {
     if (isLoggedIn()) {
         return isset($_SESSION['user_role']) && $_SESSION['user_role'] == 1;
@@ -28,16 +28,16 @@ function isAdmin() {
     return false;
 }
 
-/**
- * Get current user ID
- */
+
+//Get current user ID
+
 function get_user_id() {
     return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
 }
 
-/**
- * Get current user name
- */
+
+//Get current user name
+
 function get_user_name() {
     if (isset($_SESSION['user_name'])) {
         return $_SESSION['user_name'];
@@ -56,9 +56,9 @@ function get_user_name() {
     return 'User';
 }
 
-/**
- * Get current user email
- */
+
+//Get current user email
+
 function get_user_email() {
     if (isset($_SESSION['user_email'])) {
         return $_SESSION['user_email'];
@@ -79,56 +79,56 @@ function get_user_email() {
     return null;
 }
 
-/**
- * Get user type (customer or vendor)
- */
+
+//Get user type (customer or vendor)
+
 function get_user_type() {
     return isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'customer';
 }
 
-/**
- * Check if user is vendor
- */
+
+//Check if user is vendor
+
 function is_vendor() {
     return get_user_type() === 'vendor';
 }
 
-/**
- * Check if user is customer
- */
+
+//Check if user is customer
+
 function is_customer() {
     return get_user_type() === 'customer';
 }
 
-/**
- * Require login - redirect if not logged in
- */
-function require_login($redirect_to = '../login/login.php') {
+
+//Require login - redirect if not logged in
+
+function require_login($redirect_to = '../view/login.php') {
     if (!is_logged_in()) {
         header("Location: $redirect_to");
         exit();
     }
 }
 
-/**
- * Logout user
- */
+
+//Logout user
+
 function logout() {
     session_unset();
     session_destroy();
 }
 
-/**
- * Set flash message
- */
+
+//Set flash message
+
 function set_message($message, $type = 'info') {
     $_SESSION['flash_message'] = $message;
     $_SESSION['flash_type'] = $type;
 }
 
-/**
- * Get and clear flash message
- */
+
+//Get and clear flash message
+
 function get_message() {
     if (isset($_SESSION['flash_message'])) {
         $message = [

@@ -116,11 +116,23 @@ if ($event_id) {
         
         .btn-secondary:hover { background: #f9fafb; }
         
+        .btn-bookings {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%); 
+            color: white; 
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .btn-bookings:hover {
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+        }
+        
         .buttons-container { 
             display: flex; 
             justify-content: center; 
             margin-top: 40px; 
             flex-wrap: wrap;
+            gap: 15px;
         }
         
         .confirmation-message { 
@@ -204,8 +216,15 @@ if ($event_id) {
             <?php endif; ?>
             
             <div class="buttons-container">
-                <a href="dashboard.php" class="btn btn-primary">📋 View Dashboard</a>
-                <a href="budget_input.php" class="btn btn-secondary">Plan Another Event</a>
+                <a href="my_bookings.php<?php echo $event_id ? '?event_id=' . $event_id : ''; ?>" class="btn btn-bookings">
+                    📋 View My Bookings
+                </a>
+                <a href="dashboard.php" class="btn btn-primary">
+                    📊 Go to Dashboard
+                </a>
+                <a href="budget_input.php" class="btn btn-secondary">
+                    ➕ Plan Another Event
+                </a>
             </div>
         </div>
     </div>

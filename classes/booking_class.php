@@ -3,9 +3,9 @@ require_once __DIR__ . "/../settings/db_class.php";
 
 class Booking extends db_connection
 {
-    /**
-     * Get vendor bookings (existing function - keep as is)
-     */
+    
+    //Get vendor bookings
+
     public function getVendorBookings($vendor_id)
     {
         $sql = "
@@ -27,27 +27,25 @@ class Booking extends db_connection
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Update booking status (existing function - keep as is)
-     */
+    
+    //Update booking status
+    
     public function updateBookingStatus($booking_id, $status)
     {
         $sql = "UPDATE bookings SET status='$status' WHERE booking_id='$booking_id'";
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Get event bookings with vendor details
-     * @param int $event_id
-     * @return array|false
-     */
+    
+    //Get event bookings with vendor details
+    
     public function get_event_bookings_with_vendors($event_id) {
         $sql = "SELECT 
                     b.booking_id,
                     b.event_id,
                     b.booking_date,
                     b.amount,
-                    b.status as booking_status,
+                    b.status,
                     b.payment_status,
                     b.created_at,
                     v.vendor_id,
@@ -57,7 +55,7 @@ class Booking extends db_connection
                     v.total_reviews,
                     v.location,
                     v.image,
-                    v.verification_status,
+                    v.is_verified,
                     u.phone,
                     u.email
                 FROM bookings b
@@ -69,20 +67,14 @@ class Booking extends db_connection
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Create a new booking
-     * @param int $event_id
-     * @param int $vendor_id
-     * @param float $amount
-     * @param string $booking_date
-     * @param string $notes
-     * @return int|false - booking_id or false
-     */
+    
+    //Create a new booking
+    
     public function create_booking($event_id, $vendor_id, $amount, $booking_date, $notes = '') {
         $conn = $this->db_conn();
         $notes = mysqli_real_escape_string($conn, $notes);
         
-        // Include payment_status in INSERT to match your database schema
+        // Create booking with status='pending' and payment_status='unpaid'
         $sql = "INSERT INTO bookings (event_id, vendor_id, booking_date, amount, status, payment_status, notes, created_at)
                 VALUES ($event_id, $vendor_id, '$booking_date', $amount, 'pending', 'unpaid', '$notes', NOW())";
         
@@ -92,32 +84,25 @@ class Booking extends db_connection
         return false;
     }
 
-    /**
-     * Get booking by ID
-     * @param int $booking_id
-     * @return array|false
-     */
+    
+    //Get booking by ID
+    
     public function get_booking_by_id($booking_id) {
         $sql = "SELECT * FROM bookings WHERE booking_id = $booking_id LIMIT 1";
         return $this->db_fetch_one($sql);
     }
 
-    /**
-     * Delete a booking
-     * @param int $booking_id
-     * @return bool
-     */
+    
+    //Delete a booking
+    
     public function delete_booking($booking_id) {
         $sql = "DELETE FROM bookings WHERE booking_id = $booking_id";
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Update booking payment status
-     * @param int $booking_id
-     * @param string $payment_status
-     * @return bool
-     */
+    
+    //Update booking payment status
+    
     public function update_payment_status($booking_id, $payment_status) {
         $sql = "UPDATE bookings 
                 SET payment_status = '$payment_status', 
@@ -126,26 +111,23 @@ class Booking extends db_connection
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Mark all bookings for an event as paid and confirmed
-     * @param int $event_id
-     * @return bool
-     */
+    
+    //Mark all bookings for an event as paid
+    
     public function mark_event_bookings_paid($event_id) {
+        
+        // Status should remain 'pending' until vendor accepts
         $sql = "UPDATE bookings 
-                SET payment_status = 'paid', 
-                    status = 'confirmed',
+                SET payment_status = 'paid',
                     updated_at = NOW()
-                WHERE event_id = $event_id";
+                WHERE event_id = $event_id 
+                AND status = 'pending'";
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Check if booking exists for event and vendor
-     * @param int $event_id
-     * @param int $vendor_id
-     * @return bool
-     */
+    
+    //Check if booking exists for event and vendor
+    
     public function booking_exists($event_id, $vendor_id) {
         $sql = "SELECT booking_id 
                 FROM bookings 
@@ -157,11 +139,9 @@ class Booking extends db_connection
         return $result !== false;
     }
 
-    /**
-     * Get total amount for event bookings
-     * @param int $event_id
-     * @return float
-     */
+    
+    //Get total amount for event bookings
+    
     public function get_event_total($event_id) {
         $sql = "SELECT SUM(amount) as total 
                 FROM bookings 
@@ -171,11 +151,9 @@ class Booking extends db_connection
         return $result ? floatval($result['total']) : 0;
     }
 
-    /**
-     * Get booking count for an event
-     * @param int $event_id
-     * @return int
-     */
+    
+    //Get booking count for an event
+
     public function get_booking_count($event_id) {
         $sql = "SELECT COUNT(*) as count 
                 FROM bookings 
@@ -183,6 +161,28 @@ class Booking extends db_connection
         
         $result = $this->db_fetch_one($sql);
         return $result ? intval($result['count']) : 0;
+    }
+
+    
+    //Confirm booking (vendor accepts)
+    
+    public function confirm_booking($booking_id) {
+        $sql = "UPDATE bookings 
+                SET status = 'confirmed',
+                    updated_at = NOW()
+                WHERE booking_id = $booking_id";
+        return $this->db_write_query($sql);
+    }
+
+    
+    //Reject booking (vendor declines)
+    
+    public function reject_booking($booking_id) {
+        $sql = "UPDATE bookings 
+                SET status = 'cancelled',
+                    updated_at = NOW()
+                WHERE booking_id = $booking_id";
+        return $this->db_write_query($sql);
     }
 }
 ?>

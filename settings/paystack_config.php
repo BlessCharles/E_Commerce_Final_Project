@@ -1,31 +1,25 @@
 <?php
-/**
- * Paystack Configuration
- * Secure payment gateway settings
- */
+
+//Paystack Configuration
+
 require_once 'db_cred.php';
 
 // Paystack API Keys
-define('PAYSTACK_SECRET_KEY', 'sk_test_efafcd19a11e1e701fd9ff2a489f09ff94e33243'); // Replace with your secret key
-define('PAYSTACK_PUBLIC_KEY', 'pk_test_710f70fbabd51723bbab27ef547e917ae0e631d2'); // Replace with your public key
+define('PAYSTACK_SECRET_KEY', 'sk_test_efafcd19a11e1e701fd9ff2a489f09ff94e33243');
+define('PAYSTACK_PUBLIC_KEY', 'pk_test_710f70fbabd51723bbab27ef547e917ae0e631d2');
 
 // Paystack URLs
 define('PAYSTACK_API_URL', 'https://api.paystack.co');
 define('PAYSTACK_INIT_ENDPOINT', PAYSTACK_API_URL . '/transaction/initialize');
 define('PAYSTACK_VERIFY_ENDPOINT', PAYSTACK_API_URL . '/transaction/verify/');
 
-define('APP_ENVIRONMENT', 'test'); 
-define('APP_BASE_URL', SERVER . '/E_Commerce_Final_Project'); // Update with your project folder name
-define('PAYSTACK_CALLBACK_URL', APP_BASE_URL . '/view/paystack_callback.php'); // Callback after payment
+define('APP_ENVIRONMENT', 'test');
+define('APP_BASE_URL', SERVER . '/E_Commerce_Final_Project');
+define('PAYSTACK_CALLBACK_URL', APP_BASE_URL . '/view/paystack_callback.php');
 
-/**
- * Initialize a Paystack transaction
- * 
- * @param float $amount Amount in GHS (will be converted to pesewas)
- * @param string $email Customer email
- * @param string $reference Optional reference
- * @return array Response with 'status' and 'data' containing authorization_url
- */
+
+//Initialize a Paystack transaction
+
 function paystack_initialize_transaction($amount, $email, $reference = null) {
     $reference = $reference ?? 'ref_' . uniqid();
     
@@ -36,7 +30,7 @@ function paystack_initialize_transaction($amount, $email, $reference = null) {
         'amount' => $amount_in_pesewas,
         'email' => $email,
         'reference' => $reference,
-        'callback_url' => PAYSTACK_CALLBACK_URL,
+        'callback_url' => 'http://localhost/E_Commerce_Final_Project/view/paystack_callback.php',
         'metadata' => [
             'currency' => 'GHS',
             'app' => 'PlanSmart Ghana',
@@ -49,26 +43,18 @@ function paystack_initialize_transaction($amount, $email, $reference = null) {
     return $response;
 }
 
-/**
- * Verify a Paystack transaction
- * 
- * @param string $reference Transaction reference
- * @return array Response with transaction details
- */
+
+//Verify a Paystack transaction
+
 function paystack_verify_transaction($reference) {
     $response = paystack_api_request('GET', PAYSTACK_VERIFY_ENDPOINT . $reference);
     
     return $response;
 }
 
-/**
- * Make a request to Paystack API
- * 
- * @param string $method HTTP method (GET, POST, etc)
- * @param string $url Full API endpoint URL
- * @param array $data Optional data to send
- * @return array API response decoded as array
- */
+
+//Make a request to Paystack API
+
 function paystack_api_request($method, $url, $data = null) {
     $ch = curl_init();
     
@@ -114,9 +100,9 @@ function paystack_api_request($method, $url, $data = null) {
     return $result;
 }
 
-/**
- * Get currency symbol for display
- */
+
+//Get currency symbol for display
+
 function get_currency_symbol($currency = 'GHS') {
     $symbols = [
         'GHS' => '₵',

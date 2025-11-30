@@ -166,7 +166,7 @@ function renderSelectedVendors(data) {
 // Vote for vendor (placeholder - can be implemented later)
 function voteVendor(bookingId, vote) {
     console.log(`Voting ${vote} for booking ${bookingId}`);
-    // TODO: Implement voting functionality
+    
     alert('Voting feature coming soon!');
 }
 

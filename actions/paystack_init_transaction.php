@@ -1,8 +1,7 @@
 <?php
-/**
- * Initialize Paystack Payment Transaction
- * Location: actions/paystack_init_transaction.php
- */
+
+//Initialize Paystack Payment Transaction
+
 
 header('Content-Type: application/json');
 
@@ -60,8 +59,9 @@ try {
     $reference = 'PLAN-' . $event_id . '-' . $customer_id . '-' . time();
     
     error_log("Initializing transaction - Customer: $customer_id, Event: $event_id, Amount: $amount GHS, Email: $customer_email");
+    error_log("Callback URL configured: " . PAYSTACK_CALLBACK_URL);
     
-    // Initialize Paystack transaction
+    // Initialize Paystack transaction (callback URL is already in the config)
     $paystack_response = paystack_initialize_transaction($amount, $customer_email, $reference);
     
     if (!$paystack_response) {
@@ -78,6 +78,7 @@ try {
         $_SESSION['paystack_timestamp'] = time();
         
         error_log("Paystack transaction initialized successfully - Reference: $reference");
+        error_log("Authorization URL: " . $paystack_response['data']['authorization_url']);
         
         echo json_encode([
             'status' => 'success',

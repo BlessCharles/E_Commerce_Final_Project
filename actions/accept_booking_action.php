@@ -5,7 +5,7 @@ if (isset($_POST['booking_id'])) {
 
     $booking_id = $_POST['booking_id'];
 
-    $booking = new BookingModel();
+    $booking = new Booking();
     $booking->updateBookingStatus($booking_id, "confirmed");
 
     echo "success";

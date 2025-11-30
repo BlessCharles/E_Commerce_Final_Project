@@ -1,10 +1,9 @@
 <?php
-/**
- * Paystack Payment Callback Handler
- * This page is called after Paystack payment process
- * User is redirected here by Paystack after payment
- * Location: view/paystack_callback.php
- */
+
+//Paystack Payment Callback Handler
+//This page is called after Paystack payment process
+//User is redirected here by Paystack after payment
+
 
 require_once '../settings/core.php';
 require_once '../settings/paystack_config.php';
@@ -137,9 +136,9 @@ error_log("Reference from URL: $reference");
     </div>
 
     <script>
-        /**
-         * Verify payment with backend
-         */
+        
+        //Verify payment with backend
+        
         async function verifyPayment() {
             const reference = '<?php echo htmlspecialchars($reference); ?>';
             
@@ -191,9 +190,9 @@ error_log("Reference from URL: $reference");
             }
         }
         
-        /**
-         * Show error message
-         */ 
+        
+        //Show error message
+        
         function showError(message) {
             document.getElementById('errorBox').style.display = 'block';
             document.getElementById('errorMessage').textContent = message;

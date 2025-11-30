@@ -1,9 +1,7 @@
 <?php
 include_once 'db_cred.php';
 
-/**
- *@version 1.1
- */
+
 if (!class_exists('db_connection')) {
     class db_connection
     {
@@ -11,11 +9,10 @@ if (!class_exists('db_connection')) {
         public $db = null;
         public $results = null;
 
-        //connect
-        /**
-         * Database connection
-         * @return boolean
-         **/
+        
+        
+        //Database connection
+        
         function db_connect()
         {
             //connection
@@ -42,12 +39,9 @@ if (!class_exists('db_connection')) {
             }
         }
 
-        //execute a query for SELECT statements
-        /**
-         * Query the Database for SELECT statements
-         * @param string $sqlQuery
-         * @return boolean
-         **/
+        
+        //Query the Database for SELECT statements
+        
         function db_query($sqlQuery)
         {
             if (!$this->db_connect()) {
@@ -66,12 +60,10 @@ if (!class_exists('db_connection')) {
             }
         }
 
-        //execute a query for INSERT, UPDATE, DELETE statements
-        /**
-         * Query the Database for INSERT, UPDATE, DELETE statements
-         * @param string $sqlQuery
-         * @return boolean
-         **/
+        
+        
+        //Query the Database for INSERT, UPDATE, DELETE statements
+        
         function db_write_query($sqlQuery)
         {
             if (!$this->db_connect()) {
@@ -91,11 +83,7 @@ if (!class_exists('db_connection')) {
         }
 
         //fetch a single record
-        /**
-         * Get a single record
-         * @param string $sql
-         * @return array|false
-         **/
+        
         function db_fetch_one($sql)
         {
             // if executing query returns false
@@ -107,11 +95,7 @@ if (!class_exists('db_connection')) {
         }
 
         //fetch all records
-        /**
-         * Get all records
-         * @param string $sql
-         * @return array|false
-         **/
+        
         function db_fetch_all($sql)
         {
             // if executing query returns false
@@ -123,10 +107,7 @@ if (!class_exists('db_connection')) {
         }
 
         //count data
-        /**
-         * Get count of records
-         * @return int|false
-         **/
+        
         function db_count()
         {
             //check if result was set

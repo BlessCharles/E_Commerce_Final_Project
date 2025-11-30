@@ -3,22 +3,18 @@ require_once __DIR__ . "/../settings/db_class.php";
 
 class Event extends db_connection
 {
-    /**
-     * Get event by ID
-     * @param int $event_id
-     * @return array|false
-     */
+    
+    //Get event by ID
+    
     public function get_event_by_id($event_id) {
         $event_id = intval($event_id);
         $sql = "SELECT * FROM events WHERE event_id = $event_id LIMIT 1";
         return $this->db_fetch_one($sql);
     }
 
-    /**
-     * Create a new event
-     * @param array $data
-     * @return int|false - event_id or false
-     */
+    
+    //Create a new event
+    
     public function create_event($data) {
         $conn = $this->db_conn();
         
@@ -40,23 +36,18 @@ class Event extends db_connection
         return false;
     }
 
-    /**
-     * Get all events for a user
-     * @param int $user_id
-     * @return array|false
-     */
+    
+    //Get all events for a user
+    
     public function get_user_events($user_id) {
         $user_id = intval($user_id);
         $sql = "SELECT * FROM events WHERE user_id = $user_id ORDER BY created_at DESC";
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Update event details
-     * @param int $event_id
-     * @param array $data
-     * @return bool
-     */
+    
+    //Update event details
+    
     public function update_event($event_id, $data) {
         $event_id = intval($event_id);
         $conn = $this->db_conn();
@@ -109,12 +100,9 @@ class Event extends db_connection
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Update event status
-     * @param int $event_id
-     * @param string $status
-     * @return bool
-     */
+    
+    //Update event status
+    
     public function update_event_status($event_id, $status) {
         $event_id = intval($event_id);
         $conn = $this->db_conn();
@@ -124,23 +112,18 @@ class Event extends db_connection
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Delete an event
-     * @param int $event_id
-     * @return bool
-     */
+    
+    //Delete an event
+    
     public function delete_event($event_id) {
         $event_id = intval($event_id);
         $sql = "DELETE FROM events WHERE event_id = $event_id";
         return $this->db_write_query($sql);
     }
 
-    /**
-     * Get events by status
-     * @param int $user_id
-     * @param string $status
-     * @return array|false
-     */
+    
+    //Get events by status
+    
     public function get_events_by_status($user_id, $status) {
         $user_id = intval($user_id);
         $conn = $this->db_conn();
@@ -150,11 +133,9 @@ class Event extends db_connection
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Get upcoming events
-     * @param int $user_id
-     * @return array|false
-     */
+    
+    //Get upcoming events
+    
     public function get_upcoming_events($user_id) {
         $user_id = intval($user_id);
         $sql = "SELECT * FROM events 
@@ -165,11 +146,9 @@ class Event extends db_connection
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Get past events
-     * @param int $user_id
-     * @return array|false
-     */
+    
+    //Get past events
+    
     public function get_past_events($user_id) {
         $user_id = intval($user_id);
         $sql = "SELECT * FROM events 
@@ -179,12 +158,9 @@ class Event extends db_connection
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Get event count by status
-     * @param int $user_id
-     * @param string $status
-     * @return int
-     */
+    
+    //Get event count by status
+    
     public function count_events_by_status($user_id, $status) {
         $user_id = intval($user_id);
         $conn = $this->db_conn();
@@ -195,11 +171,9 @@ class Event extends db_connection
         return $result ? intval($result['count']) : 0;
     }
 
-    /**
-     * Get total budget for all events
-     * @param int $user_id
-     * @return float
-     */
+    
+    //Get total budget for all events
+    
     public function get_total_budget($user_id) {
         $user_id = intval($user_id);
         $sql = "SELECT SUM(total_budget) as total FROM events WHERE user_id = $user_id";

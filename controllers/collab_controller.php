@@ -5,12 +5,9 @@ require_once __DIR__ . '/../classes/budget_class.php';
 
 class CollabController {
 
-    /**
-     * Get all collaboration data for an event
-     * @param int $event_id
-     * @param int $user_id
-     * @return array
-     */
+    
+    //Get all collaboration data for an event
+
     public function get_collab_data($event_id, $user_id) {
         $eventClass = new Event();
         $bookingClass = new Booking();
@@ -48,9 +45,9 @@ class CollabController {
         ];
     }
 
-    /**
-     * AJAX handler to get collab data
-     */
+    
+    //AJAX handler to get collab data
+    
     public function get_collab_data_ajax() {
         session_start();
 

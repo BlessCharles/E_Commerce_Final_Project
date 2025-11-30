@@ -16,7 +16,7 @@ $(document).ready(function () {
 
         
 
-        // VALIDATION
+        // Validation
         if (!first_name || !last_name || !email || !phone || !password || !user_type) {
             Swal.fire({
                 icon: "error",

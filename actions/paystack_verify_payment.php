@@ -1,8 +1,7 @@
 <?php
-/**
- * Verify Paystack Payment
- * Location: actions/paystack_verify_payment.php
- */
+
+//Verify Paystack Payment
+
 
 header('Content-Type: application/json');
 

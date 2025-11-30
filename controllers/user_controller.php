@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../classes/user_class.php';
+require_once __DIR__ . '/../classes/event_class.php';
 
 class UserController {
 
@@ -29,7 +30,7 @@ class UserController {
         //Initialize model
         $userModel = new User();
 
-        // 4. Check if email already exists
+        //Check if email already exists
         if ($userModel->email_exists($email)) {
             $_SESSION['error'] = "Email already registered.";
             header("Location: ../view/register.php");
@@ -182,10 +183,8 @@ class UserController {
         $_SESSION['last_name'] = $user['last_name'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['phone'] = $user['phone'];
-        
-        // ⭐ ADD THESE TWO LINES - Store user_email and user_name
-        $_SESSION['user_email'] = $user['email'];  // For Paystack payment
-        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];  // For display
+        $_SESSION['user_email'] = $user['email'];
+        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
 
         // Handle remember me
         if ($remember) {
@@ -215,6 +214,7 @@ class UserController {
 
 
     //Get redirect URL based on user type and profile completion
+    // Also checks if customer has existing events
 
     private function get_redirect_url($user) {
 
@@ -234,10 +234,26 @@ class UserController {
             }
         }
 
-        // Default -> normal customer
+        // CUSTOMER REDIRECT
+        if ($user['user_type'] === 'customer') {
+            // Check if customer has any existing events
+            $eventModel = new Event();
+            $user_events = $eventModel->get_user_events($user['user_id']);
+            
+            if (!empty($user_events)) {
+                // User has events - get the most recent event ID
+                $latest_event = $user_events[0];
+                $event_id = $latest_event['event_id'];
+                
+                // Redirect to my_bookings with event_id parameter
+                return "../view/my_bookings.php?event_id=" . $event_id;
+            } else {
+                // New user - send to event selection page
+                return "../view/user_landing.php";
+            }
+        }
+
+        // Default fallback
         return "../view/user_landing.php";
     }
-
-
-
 }

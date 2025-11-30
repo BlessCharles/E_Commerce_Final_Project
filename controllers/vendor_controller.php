@@ -13,7 +13,7 @@ $conn = $db->db_conn();  // returns mysqli connection
 
 $user_id = $_SESSION['user_id'];
 
-// FETCH VENDOR DETAILS
+//fetch vendor details
 $sql = "SELECT * FROM vendors WHERE user_id = $user_id LIMIT 1";
 $result = mysqli_query($conn, $sql);
 $vendor = mysqli_fetch_assoc($result);

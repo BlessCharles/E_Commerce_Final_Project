@@ -113,18 +113,10 @@ class Vendor extends db_connection {
         return $result->fetch_assoc();
     }
 
-    // ============================================================
-    // SMART RECOMMENDATIONS METHODS
-    // ============================================================
-
-    /**
-     * Get verified vendors by category within budget range
-     * @param string $category
-     * @param float $budget_min
-     * @param float $budget_max
-     * @param int $limit
-     * @return array|false
-     */
+    //smart recommendations methods
+    
+    //Get verified vendors by category within budget range
+    
     public function get_vendors_by_category_and_budget($category, $budget_min, $budget_max, $limit = 3) {
         $conn = $this->db_conn();
         if (!$conn) {
@@ -157,11 +149,9 @@ class Vendor extends db_connection {
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Get vendor details by ID
-     * @param int $vendor_id
-     * @return array|false
-     */
+    
+    //Get vendor details by ID
+    
     public function get_vendor_details($vendor_id) {
         $conn = $this->db_conn();
         if (!$conn) {
@@ -182,11 +172,9 @@ class Vendor extends db_connection {
         return $this->db_fetch_one($sql);
     }
 
-    /**
-     * Get all verified vendors by category
-     * @param string $category
-     * @return array|false
-     */
+    
+    //Get all verified vendors by category
+    
     public function get_all_vendors_by_category($category) {
         $conn = $this->db_conn();
         if (!$conn) {
@@ -214,11 +202,9 @@ class Vendor extends db_connection {
         return $this->db_fetch_all($sql);
     }
 
-    /**
-     * Check if vendor exists and is verified
-     * @param int $vendor_id
-     * @return bool
-     */
+    
+    //Check if vendor exists and is verified
+    
     public function is_vendor_verified($vendor_id) {
         $sql = "SELECT vendor_id FROM vendors 
                 WHERE vendor_id = $vendor_id 
@@ -230,15 +216,10 @@ class Vendor extends db_connection {
         return $result !== false;
     }
 
-    // ============================================================
-    // VENDOR DASHBOARD METHODS
-    // ============================================================
-
-    /**
-     * Get vendor statistics for dashboard
-     * @param int $vendor_id
-     * @return array - Statistics array
-     */
+    //vendor dashboard methods
+    
+    //Get vendor statistics for dashboard
+    
     public function get_vendor_stats($vendor_id) {
         $conn = $this->db_conn();
         
@@ -281,12 +262,9 @@ class Vendor extends db_connection {
         return $stats;
     }
 
-    /**
-     * Get vendor bookings
-     * @param int $vendor_id
-     * @param string $status - Optional: filter by status
-     * @return array - Array of bookings
-     */
+    
+    //Get vendor bookings
+    
     public function get_vendor_bookings($vendor_id, $status = null) {
         $conn = $this->db_conn();
         
@@ -317,12 +295,9 @@ class Vendor extends db_connection {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    /**
-     * Get vendor reviews (updated to avoid confusion with get_vendor_reviews in smart recommendations)
-     * @param int $vendor_id
-     * @param int $limit - Optional limit
-     * @return array - Array of reviews
-     */
+    
+    //Get vendor reviews (updated to avoid confusion with get_vendor_reviews in smart recommendations)
+    
     public function get_vendor_reviews($vendor_id, $limit = null) {
         $conn = $this->db_conn();
         
@@ -346,12 +321,9 @@ class Vendor extends db_connection {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
 
-    /**
-     * Update booking status
-     * @param int $booking_id
-     * @param string $status
-     * @return bool
-     */
+    
+    //Update booking status
+    
     public function update_booking_status($booking_id, $status) {
         $conn = $this->db_conn();
         
@@ -362,15 +334,10 @@ class Vendor extends db_connection {
         return $stmt->execute();
     }
 
-    // ============================================================
-    // VENDOR APPROVAL METHODS
-    // ============================================================
-
-    /**
-     * Get vendors by verification status
-     * @param string $status - 'pending', 'approved', or 'rejected'
-     * @return array - Array of vendor records
-     */
+    //vendor approval methods
+    
+    //Get vendors by verification status
+    
     public function get_vendors_by_status($status) {
         $conn = $this->db_conn();
         
@@ -388,12 +355,9 @@ class Vendor extends db_connection {
         return $result->fetch_all(MYSQLI_ASSOC);
     }
     
-    /**
-     * Approve a vendor application
-     * @param int $vendor_id - The vendor ID to approve
-     * @param int $admin_id - The admin user ID approving
-     * @return bool - Success or failure
-     */
+    
+    //Approve a vendor application
+    
     public function approve_vendor($vendor_id, $admin_id) {
         $conn = $this->db_conn();
         
@@ -414,13 +378,9 @@ class Vendor extends db_connection {
         return false;
     }
     
-    /**
-     * Reject a vendor application
-     * @param int $vendor_id - The vendor ID to reject
-     * @param int $admin_id - The admin user ID rejecting
-     * @param string $reason - Reason for rejection
-     * @return bool - Success or failure
-     */
+    
+    //Reject a vendor application
+    
     public function reject_vendor($vendor_id, $admin_id, $reason = '') {
         $conn = $this->db_conn();
         
@@ -441,10 +401,9 @@ class Vendor extends db_connection {
         return false;
     }
     
-    /**
-     * Send approval email to vendor
-     * @param int $vendor_id
-     */
+    
+    //Send approval email to vendor
+    
     private function send_approval_email($vendor_id) {
         $conn = $this->db_conn();
         
@@ -483,16 +442,13 @@ class Vendor extends db_connection {
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
             $headers .= "From: no-reply@plansmartghana.com" . "\r\n";
             
-            // Uncomment when ready to send emails
-            // mail($to, $subject, $message, $headers);
+            
         }
     }
     
-    /**
-     * Send rejection email to vendor
-     * @param int $vendor_id
-     * @param string $reason
-     */
+    
+    //Send rejection email to vendor
+    
     private function send_rejection_email($vendor_id, $reason) {
         $conn = $this->db_conn();
         
@@ -528,22 +484,13 @@ class Vendor extends db_connection {
             $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
             $headers .= "From: no-reply@plansmartghana.com" . "\r\n";
             
-            // Uncomment when ready to send emails
-            // mail($to, $subject, $message, $headers);
+            
         }
     }
 
-        /**
-     * Get filtered vendors based on multiple criteria
-     * @param string $category - Category filter ('all' for all categories)
-     * @param string $search - Search term for business name/description
-     * @param float $min_price - Minimum starting price
-     * @param float $max_price - Maximum starting price
-     * @param float $min_rating - Minimum rating
-     * @param string $location - Location filter
-     * @param bool $verified_only - Only show verified vendors
-     * @return array - Array of filtered vendors
-     */
+
+    //Get filtered vendors based on multiple criteria
+    
     public function get_filtered_vendors($category = 'all', $search = '', $min_price = 0, $max_price = 999999, $min_rating = 0, $location = '', $verified_only = false) {
         $conn = $this->db_conn();
         if (!$conn) {
@@ -610,10 +557,9 @@ class Vendor extends db_connection {
         return $result ? $result : [];
     }
 
-    /**
-     * Get all unique categories from vendors table
-     * @return array - Array of category names
-     */
+    
+    //Get all unique categories from vendors table
+    
     public function get_all_categories() {
         $conn = $this->db_conn();
         if (!$conn) {
