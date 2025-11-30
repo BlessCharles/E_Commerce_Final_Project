@@ -532,5 +532,111 @@ class Vendor extends db_connection {
             // mail($to, $subject, $message, $headers);
         }
     }
+
+        /**
+     * Get filtered vendors based on multiple criteria
+     * @param string $category - Category filter ('all' for all categories)
+     * @param string $search - Search term for business name/description
+     * @param float $min_price - Minimum starting price
+     * @param float $max_price - Maximum starting price
+     * @param float $min_rating - Minimum rating
+     * @param string $location - Location filter
+     * @param bool $verified_only - Only show verified vendors
+     * @return array - Array of filtered vendors
+     */
+    public function get_filtered_vendors($category = 'all', $search = '', $min_price = 0, $max_price = 999999, $min_rating = 0, $location = '', $verified_only = false) {
+        $conn = $this->db_conn();
+        if (!$conn) {
+            return [];
+        }
+        
+        $sql = "SELECT 
+                    v.vendor_id,
+                    v.business_name,
+                    v.business_description,
+                    v.category,
+                    v.starting_price,
+                    v.rating,
+                    v.total_reviews,
+                    v.location,
+                    v.image,
+                    v.verification_status,
+                    u.email,
+                    u.phone
+                FROM vendors v
+                INNER JOIN users u ON v.user_id = u.user_id
+                WHERE v.is_active = 1";
+        
+        // Category filter
+        if ($category !== 'all' && !empty($category)) {
+            $category_escaped = mysqli_real_escape_string($conn, $category);
+            $sql .= " AND v.category = '$category_escaped'";
+        }
+        
+        // Search filter - search in business name and description
+        if (!empty($search)) {
+            $search_escaped = mysqli_real_escape_string($conn, $search);
+            $sql .= " AND (v.business_name LIKE '%$search_escaped%' 
+                    OR v.business_description LIKE '%$search_escaped%'
+                    OR v.category LIKE '%$search_escaped%')";
+        }
+        
+        // Price range filter
+        if ($min_price > 0 || $max_price < 999999) {
+            $sql .= " AND v.starting_price BETWEEN $min_price AND $max_price";
+        }
+        
+        // Rating filter
+        if ($min_rating > 0) {
+            $sql .= " AND v.rating >= $min_rating";
+        }
+        
+        // Location filter
+        if (!empty($location)) {
+            $location_escaped = mysqli_real_escape_string($conn, $location);
+            $sql .= " AND v.location LIKE '%$location_escaped%'";
+        }
+        
+        // Verified only filter
+        if ($verified_only) {
+            $sql .= " AND v.verification_status = 'approved'";
+        }
+        
+        // Order by rating and reviews
+        $sql .= " ORDER BY v.rating DESC, v.total_reviews DESC";
+        
+        $result = $this->db_fetch_all($sql);
+        
+        return $result ? $result : [];
+    }
+
+    /**
+     * Get all unique categories from vendors table
+     * @return array - Array of category names
+     */
+    public function get_all_categories() {
+        $conn = $this->db_conn();
+        if (!$conn) {
+            return [];
+        }
+        
+        $sql = "SELECT DISTINCT category 
+                FROM vendors 
+                WHERE is_active = 1
+                ORDER BY category ASC";
+        
+        $result = $this->db_fetch_all($sql);
+        
+        $categories = [];
+        if ($result) {
+            foreach ($result as $row) {
+                if (!empty($row['category'])) {
+                    $categories[] = $row['category'];
+                }
+            }
+        }
+        
+        return $categories;
+    }
 }
 ?>
