@@ -181,6 +181,11 @@ class UserController {
         $_SESSION['first_name'] = $user['first_name'];
         $_SESSION['last_name'] = $user['last_name'];
         $_SESSION['email'] = $user['email'];
+        $_SESSION['phone'] = $user['phone'];
+        
+        // ⭐ ADD THESE TWO LINES - Store user_email and user_name
+        $_SESSION['user_email'] = $user['email'];  // For Paystack payment
+        $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];  // For display
 
         // Handle remember me
         if ($remember) {

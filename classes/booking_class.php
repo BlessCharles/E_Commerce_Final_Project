@@ -3,6 +3,9 @@ require_once __DIR__ . "/../settings/db_class.php";
 
 class Booking extends db_connection
 {
+    /**
+     * Get vendor bookings (existing function - keep as is)
+     */
     public function getVendorBookings($vendor_id)
     {
         $sql = "
@@ -24,6 +27,9 @@ class Booking extends db_connection
         return $this->db_fetch_all($sql);
     }
 
+    /**
+     * Update booking status (existing function - keep as is)
+     */
     public function updateBookingStatus($booking_id, $status)
     {
         $sql = "UPDATE bookings SET status='$status' WHERE booking_id='$booking_id'";
@@ -43,6 +49,7 @@ class Booking extends db_connection
                     b.amount,
                     b.status as booking_status,
                     b.payment_status,
+                    b.created_at,
                     v.vendor_id,
                     v.business_name,
                     v.category,
@@ -50,6 +57,7 @@ class Booking extends db_connection
                     v.total_reviews,
                     v.location,
                     v.image,
+                    v.verification_status,
                     u.phone,
                     u.email
                 FROM bookings b
@@ -75,11 +83,11 @@ class Booking extends db_connection
         $notes = mysqli_real_escape_string($conn, $notes);
         
         // Include payment_status in INSERT to match your database schema
-        $sql = "INSERT INTO bookings (event_id, vendor_id, booking_date, amount, status, payment_status, notes)
-                VALUES ($event_id, $vendor_id, '$booking_date', $amount, 'pending', 'unpaid', '$notes')";
+        $sql = "INSERT INTO bookings (event_id, vendor_id, booking_date, amount, status, payment_status, notes, created_at)
+                VALUES ($event_id, $vendor_id, '$booking_date', $amount, 'pending', 'unpaid', '$notes', NOW())";
         
         if ($this->db_write_query($sql)) {
-            return $this->last_insert_id();
+            return mysqli_insert_id($conn);
         }
         return false;
     }
@@ -95,12 +103,86 @@ class Booking extends db_connection
     }
 
     /**
-     * Get last insert ID
+     * Delete a booking
+     * @param int $booking_id
+     * @return bool
+     */
+    public function delete_booking($booking_id) {
+        $sql = "DELETE FROM bookings WHERE booking_id = $booking_id";
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Update booking payment status
+     * @param int $booking_id
+     * @param string $payment_status
+     * @return bool
+     */
+    public function update_payment_status($booking_id, $payment_status) {
+        $sql = "UPDATE bookings 
+                SET payment_status = '$payment_status', 
+                    updated_at = NOW() 
+                WHERE booking_id = $booking_id";
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Mark all bookings for an event as paid and confirmed
+     * @param int $event_id
+     * @return bool
+     */
+    public function mark_event_bookings_paid($event_id) {
+        $sql = "UPDATE bookings 
+                SET payment_status = 'paid', 
+                    status = 'confirmed',
+                    updated_at = NOW()
+                WHERE event_id = $event_id";
+        return $this->db_write_query($sql);
+    }
+
+    /**
+     * Check if booking exists for event and vendor
+     * @param int $event_id
+     * @param int $vendor_id
+     * @return bool
+     */
+    public function booking_exists($event_id, $vendor_id) {
+        $sql = "SELECT booking_id 
+                FROM bookings 
+                WHERE event_id = $event_id 
+                AND vendor_id = $vendor_id 
+                LIMIT 1";
+        
+        $result = $this->db_fetch_one($sql);
+        return $result !== false;
+    }
+
+    /**
+     * Get total amount for event bookings
+     * @param int $event_id
+     * @return float
+     */
+    public function get_event_total($event_id) {
+        $sql = "SELECT SUM(amount) as total 
+                FROM bookings 
+                WHERE event_id = $event_id";
+        
+        $result = $this->db_fetch_one($sql);
+        return $result ? floatval($result['total']) : 0;
+    }
+
+    /**
+     * Get booking count for an event
+     * @param int $event_id
      * @return int
      */
-    public function last_insert_id() {
-        $conn = $this->db_conn();
-        return mysqli_insert_id($conn);
+    public function get_booking_count($event_id) {
+        $sql = "SELECT COUNT(*) as count 
+                FROM bookings 
+                WHERE event_id = $event_id";
+        
+        $result = $this->db_fetch_one($sql);
+        return $result ? intval($result['count']) : 0;
     }
 }
 ?>
