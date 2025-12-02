@@ -2,17 +2,41 @@
 require_once __DIR__ . '/../settings/db_class.php';
 
 class Vendor extends db_connection {
+    
+    // Helper: prepare statement or throw detailed exception
+    private function prepareOrThrow($conn, $sql)
+    {
+        $stmt = $conn->prepare($sql);
+        if ($stmt === false) {
+            $err = $conn->error ?: 'unknown error';
+            $errno = $conn->errno ?: 0;
+            throw new Exception("SQL prepare failed: {$err}", $errno);
+        }
+        return $stmt;
+    }
 
+    // Helper: execute stmt or throw
+    private function executeOrThrow($stmt, $conn)
+    {
+        $res = $stmt->execute();
+        if ($res === false) {
+            $err = $stmt->error ?: $conn->error ?: 'unknown error';
+            $errno = $conn->errno ?: 0;
+            throw new Exception("SQL execute failed: {$err}", $errno);
+        }
+        return $res;
+    }
     // Insert or update vendor profile
     public function save_vendor_profile($user_id, $data, $image_path = null) {
         $conn = $this->db_conn();
 
         // Check if vendor already exists
         $sql_check = "SELECT vendor_id FROM vendors WHERE user_id = ? LIMIT 1";
-        $stmt = $conn->prepare($sql_check);
+        $stmt = $this->prepareOrThrow($conn, $sql_check);
         $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        $this->executeOrThrow($stmt, $conn);
+        // Use store_result and bind_result to avoid requiring mysqlnd/get_result
+        $stmt->store_result();
 
         // Prepare fields
         $business_name = $data['business_name'];
@@ -24,9 +48,11 @@ class Vendor extends db_connection {
         $starting_price = $data['starting_price'];
         $price_range = $data['price_range'];
 
-        if ($result->num_rows > 0) {
+        if ($stmt->num_rows > 0) {
             // Update vendor
-            $vendor_id = $result->fetch_assoc()['vendor_id'];
+            $vendor_id = null;
+            $stmt->bind_result($vendor_id);
+            $stmt->fetch();
 
             $sql_update = "UPDATE vendors 
                 SET business_name = ?, business_description = ?, image = ?, category = ?, 
@@ -34,7 +60,7 @@ class Vendor extends db_connection {
                     price_range = ?, updated_at = NOW()
                 WHERE vendor_id = ?";
 
-            $stmt2 = $conn->prepare($sql_update);
+            $stmt2 = $this->prepareOrThrow($conn, $sql_update);
             $stmt2->bind_param(
                 "ssssissdsi",
                 $business_name,
@@ -48,7 +74,7 @@ class Vendor extends db_connection {
                 $price_range,
                 $vendor_id
             );
-            $stmt2->execute();
+            $this->executeOrThrow($stmt2, $conn);
 
             return $vendor_id;
 
@@ -59,7 +85,7 @@ class Vendor extends db_connection {
                  location, address, starting_price, price_range)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
 
-            $stmt3 = $conn->prepare($sql_insert);
+            $stmt3 = $this->prepareOrThrow($conn, $sql_insert);
             $stmt3->bind_param(
                 "issssissds",
                 $user_id,
@@ -73,7 +99,7 @@ class Vendor extends db_connection {
                 $starting_price,
                 $price_range
             );
-            $stmt3->execute();
+            $this->executeOrThrow($stmt3, $conn);
 
             return $this->last_insert_id();
         }
@@ -83,16 +109,19 @@ class Vendor extends db_connection {
     public function save_vendor_services($vendor_id, $services) {
         $conn = $this->db_conn();
 
-        // Remove old services
-        $conn->query("DELETE FROM vendor_services WHERE vendor_id = $vendor_id");
+        // Remove old services (use prepared statement)
+        $sql_del = "DELETE FROM vendor_services WHERE vendor_id = ?";
+        $stmt_del = $this->prepareOrThrow($conn, $sql_del);
+        $stmt_del->bind_param("i", $vendor_id);
+        $this->executeOrThrow($stmt_del, $conn);
 
-        // Insert new services
+        // Insert new services (prepared)
         $sql = "INSERT INTO vendor_services (vendor_id, event_type) VALUES (?, ?)";
-        $stmt = $conn->prepare($sql);
+        $stmt = $this->prepareOrThrow($conn, $sql);
 
         foreach ($services as $service) {
             $stmt->bind_param("is", $vendor_id, $service);
-            $stmt->execute();
+            $this->executeOrThrow($stmt, $conn);
         }
     }
 

@@ -46,12 +46,31 @@ if (isset($_FILES['vendor_image']) && $_FILES['vendor_image']['error'] === UPLOA
     }
 }
 
-// Save vendor profile with image path
-$vendor_id = $vendor->save_vendor_profile($user_id, $data, $image_path);
+// Save vendor profile with image path and handle SQL errors
+try {
+    $vendor_id = $vendor->save_vendor_profile($user_id, $data, $image_path);
 
-// Save vendor service checkboxes
-$services = isset($_POST['events']) ? $_POST['events'] : [];
-$vendor->save_vendor_services($vendor_id, $services);
+    if (empty($vendor_id)) {
+        throw new Exception('Failed to obtain vendor id after save.');
+    }
 
-header("Location: ../view/vendor_dash.php");
-exit();
+    // Save vendor service checkboxes
+    $services = isset($_POST['events']) ? $_POST['events'] : [];
+    $vendor->save_vendor_services($vendor_id, $services);
+
+    // On success redirect
+    header("Location: ../view/vendor_dash.php");
+    exit();
+
+} catch (Exception $e) {
+    // Return visible error JSON to browser for debugging (no file logs)
+    header('Content-Type: application/json');
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to save vendor profile',
+        'error' => $e->getMessage(),
+        'errno' => $e->getCode()
+    ]);
+    exit();
+}

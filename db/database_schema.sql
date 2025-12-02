@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS plansmart_db;
-USE plansmart_db;
+-- CREATE DATABASE IF NOT EXISTS plansmart_db;
+-- USE plansmart_db;
 
 -- PlanSmart Ghana Database Schema
 
