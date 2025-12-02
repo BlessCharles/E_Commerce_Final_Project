@@ -256,7 +256,7 @@ function renderVendorCards(vendors, category, allocatedAmount) {
         const selectBtnClass = isSelected ? 'btn-select btn-selected' : 'btn-select';
         const selectBtnText = isSelected ? '✓ Selected' : 'Select';
         
-        const vendorImage = getVendorImageHTML(vendor.image, category);
+        const vendorImage = getVendorImageHTML("../" + (vendor.image_path || ''), category);
 
         return `
             <div class="vendor-card">
